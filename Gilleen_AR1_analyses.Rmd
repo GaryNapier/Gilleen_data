@@ -1,0 +1,337 @@
+---
+title: "AR1 analyses of Gilleen data"
+author: "Gary Napier"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+`r setwd("U:\\Gilleen_data")`
+
+<!-- arguments -->
+
+```{r echo = FALSE, cache=TRUE}
+Subjects <- 1
+Analyses_nos <- c(1, 2)
+Do_stats = TRUE
+Do_plots = TRUE
+
+```
+
+<!-- Custom functions, load data & clean -->
+
+```{r echo = FALSE, cache=TRUE}
+
+# Source packages and custom function
+source("https://raw.githubusercontent.com/GaryNapier/Packages_functions/master/PACKAGES.R")
+
+#---------------------------------------
+# Load in data & clean
+#---------------------------------------
+
+# Read in data from CSV and Matlab files
+# Gillen CSV file is for getting the groups (control/patient/normal control)
+if (!exists("Gilleen") | !exists("Gilleen_analyses")){
+  Gilleen <<- read.csv("Gilleen_all_beads.csv")
+  Gilleen_analyses <<- readMat("Gilleen_PE_analysis.mat")
+}
+
+# Get groups and clean data
+Group <- Gilleen$cond
+Group <- Group[complete.cases(Group)]
+levels(Group)[levels(Group) == "normal control"] <- "Control"
+levels(Group)[levels(Group) == "deluded"] <- "Patient"
+Group <- factor(Group, levels = c("Control", "Patient"))
+Group_names <- as.character(unique(Group))
+
+#---------------------------------------
+# Misc setup
+#---------------------------------------
+
+# Group numbers
+Ctrl <- 1:112
+Pat <- 113:168
+  
+# For tables
+Blue <- "#F1F0FA"
+Table_options <- list(align=c("c","|"), align.header =c("c","|"), col.columns = c("none",Blue) )
+
+  # Get model names/numbers
+Model_names <- vector()
+for (i in seq(Analyses_nos)){
+  Model_names[i] <- sprintf("A%g", Analyses_nos[i])  
+}
+
+# Save names of priors
+Priors <- c("NuPrimeMu", "NuPrimeSa", "KappaMu", "KappaSa", "OmegaMu", 
+            "OmegaSa", "ThetaMu", "ThetaSa", "mMu", "mSa", "PhiMu", "PhiSa", "Sig2Mu", "Sig2Sa")
+  
+# Misc
+options(digits = 4)
+Group_names <- as.character(unique(Group))
+N_groups <- length(Group_names)
+Parameter_names <- c("Omega", "Nu", "M", "Phi")
+N_parameters <- length(Parameter_names)
+N_subjects <- length(Gilleen_analyses[[1]][[1]][[1]][[1]])
+N_analyses <- length(Analyses_nos)
+  
+
+#----------------------------------------------------------------
+# Get & display parameter priors used for each selected analysis
+#----------------------------------------------------------------
+
+# Create data frames of priors for selected analyses 
+# Separate data frames for original and AR1 models
+Priors_df <- data.frame()
+Priors_df_AR1 <- list()
+for (i in seq(Analyses_nos)){
+  if (Analyses_nos[i] <= 10){
+    Priors_df <- rbind(Priors_df,
+    data.frame(Gilleen_analyses[[1]][[Analyses_nos[i]]][[1]][,,1][c(Priors)]) )
+  } else {
+   Priors_df_AR1[[i]] <- Gilleen_analyses[[1]][[Analyses_nos[i]]][[1]][,,1][c(Priors)]
+  }
+}
+
+# AR1 priors - horrible data-cleaning excercise!
+if (length(Priors_df_AR1) >= 1){
+Priors_df_AR1 <- Priors_df_AR1[!sapply(Priors_df, is.null)]
+Priors_df_AR1 <- lapply(Priors_df_AR1, function(x) x[!sapply(x, is.null)])
+Priors_df_AR1 <- lapply(Priors_df_AR1, function(x) lapply(x, function(x) tryCatch({
+  x[,2]
+}, error = function(e){
+  x[,1]
+} )))
+Priors_df_AR1 <- plyr::ldply(lapply(Priors_df_AR1, data.frame), data.frame)
+}
+
+# Add analyses numbers as row names for each dataframe
+for (i in seq(Analyses_nos)){
+  if (Analyses_nos[i] <= 10){
+   rownames(Priors_df)[i] <- Model_names[i]
+  }else if (Analyses_nos[i] > 10 & length(Priors_df_AR1) > 1){
+   rownames(Priors_df_AR1)[i - nrow(Priors_df)] <- Model_names[i]
+  }
+}
+
+# Tests for R markdown evaluation:
+Priors_df_test <- nrow(Priors_df) > 1
+Priors_df_AR1_test <- nrow(Priors_df_AR1) > 1
+  
+```
+### **Parameter priors**
+`r if (Priors_df_test) '### Original model analyses:'`
+`r if (Priors_df_test) do.call("htmlTable", c(list(signif(Priors_df, digits=3)), Table_options))`
+`r if (Priors_df_AR1_test) '### AR1 model analyses:'`
+`r if (Priors_df_test) do.call("htmlTable", c(list(signif(Priors_df_AR1, digits=3)), Table_options))`
+**-------------------------------------------------------------------------------------------**
+
+<!-- GET POSTERIORS AND STATS TO PASS TO PLOTS/ DISPLAYS -->
+
+```{r echo=FALSE, cache=TRUE}
+
+# Get posteriors from selected analyses - for overall stats
+Om_vector <- vector("list", length(Gilleen_analyses[[1]]))
+Nu_vector <- vector("list", length(Gilleen_analyses[[1]]))
+M_vector  <- vector("list", length(Gilleen_analyses[[1]]))
+Phi_vector<- vector("list", length(Gilleen_analyses[[1]]))
+for (j in seq_along(Analyses_nos)){
+  for (i in 1:N_subjects){
+    if (Analyses_nos[j] < 11){
+Om_vector[[Analyses_nos[j]]][i] <- Gilleen_analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][9][[1]][[6]][1]
+Nu_vector[[Analyses_nos[j]]][i] <- Gilleen_analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[10]][[1]][1]
+M_vector[[Analyses_nos[j]]][i] <- Gilleen_analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][9][[1]][[8]][1]
+Phi_vector[[Analyses_nos[j]]][i] <- Gilleen_analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][9][[1]][[9]][1]
+}else{ 
+Om_vector[[Analyses_nos[j]]][i] <- Gilleen_analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][9][[1]][[6]][2]
+Nu_vector[[Analyses_nos[j]]][i] <- Gilleen_analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[10]][[1]][1]
+M_vector[[Analyses_nos[j]]][i] <- Gilleen_analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][9][[1]][[4]][2]
+Phi_vector[[Analyses_nos[j]]][i] <- Gilleen_analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][9][[1]][[3]][2]
+    }
+  }#for (i in 1:N_subjects)
+}#for (j in Analyses_nos)
+ 
+# Clear NULL values from lists
+Om_vector <- Om_vector[vapply(Om_vector, Negate(is.null), NA)]
+Nu_vector <- Nu_vector[vapply(Nu_vector, Negate(is.null), NA)]
+M_vector  <- M_vector[vapply(M_vector, Negate(is.null), NA)]
+Phi_vector<- Phi_vector[vapply(Phi_vector, Negate(is.null), NA)]
+# Make list of data frames for ANOVA analyses
+Om_vector <- lapply(Om_vector, function(Om_vector) cbind.data.frame(Group, Om_vector))
+Nu_vector <- lapply(Nu_vector, function(Nu_vector) cbind.data.frame(Group, Nu_vector))
+M_vector  <- lapply(M_vector, function(M_vector) cbind.data.frame(Group, M_vector))
+Phi_vector<- lapply(Phi_vector, function(Phi_vector) cbind.data.frame(Group, Phi_vector))
+  
+  # Measure fit for whole analyses selected
+  
+# Get responses (i.e. data), bead seq & HGF predictions
+Responses <- vector("list", length(Analyses[[1]]))
+Beads <- vector("list", length(Analyses[[1]]))
+Predictions <- vector("list", length(Analyses[[1]]))
+Mu2_0 <- vector("list", length(Analyses[[1]]))
+Learning_rate <- vector("list", length(Analyses[[1]]))
+for (j in seq_along(Analyses_nos)){
+  for (i in 1:N_subjects){
+# r.y:
+Responses[[Analyses_nos[j]]][[i]] <- Analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[1]]
+# r.u:
+Beads[[Analyses_nos[j]]][[i]] <- Analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[2]]
+if (Analyses_nos[j] < 11){
+  # r.traj.mu:
+  Predictions[[Analyses_nos[j]]][[i]] <- Tapas_sgm(Analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[11]][[1]][,2,1], 1) 
+  # r.p_prc.mu2_0; the '0th' prediction (prior):
+  Mu2_0[[Analyses_nos[j]]][[i]] <- Tapas_sgm(Analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[9]][[1]][1], 1)
+  # r.traj.wt; Learning rate
+  Learning_rate[[Analyses_nos[j]]][[i]] <- list()
+}else{
+  # r.traj.mu:
+  Predictions[[Analyses_nos[j]]][[i]] <- Tapas_sgm(Analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[11]][[1]][,2], 1) 
+  # r.p_prc.mu2_0; the '0th' prediction (prior):
+  Mu2_0[[Analyses_nos[j]]][[i]] <- Tapas_sgm(Analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[9]][[1]][2], 1)
+  # r.traj.wt; Learning rate
+  Learning_rate[[Analyses_nos[j]]][[i]] <- Analyses[[1]][[Analyses_nos[j]]][[1]][[1]][[i]][[1]][[11]][[11]][,1]
+      
+    }
+  }#(i in 1:N_subjects)
+}#(j in 1:length(Analyses_nos))
+
+ # Remove NULLS. Not sure why each one is different...
+Responses <- Responses[vapply(Responses, Negate(is.null), NA)]
+Beads <- Beads[vapply(Beads, Negate(is.null), NA)]
+Predictions <- Predictions[vapply(Predictions, Negate(is.null), NA)]
+Mu2_0 <- Filter(Negate(is.null), Mu2_0)
+Learning_rate <- Learning_rate[vapply(Learning_rate, Negate(is.null), NA)]
+# DONE
+
+# Useful!
+N_beads <- lapply(Beads, function(x) unlist(unique(lapply(x, length))))
+N_predictions <- lapply(Predictions, function(x) unlist(unique(lapply(x, length))))
+N_responses <- lapply(Responses, function(x) unlist(unique(lapply(x, length))))
+
+# Pre-allocate for for-loops
+Opp_bead_indeces <- vector("list", length(Beads)) 
+Opp_bead_indeces <- lapply(Opp_bead_indeces, function(x){
+  vector("list", N_subjects)
+})
+
+# Loops for getting true/false for 'bead of opposite colour' from bead seqs
+for (k in 1:length(Beads)){
+  for (j in 1:length(Beads[[k]])){
+    for(i in 2:length(Beads[[k]][[j]])){
+      Opp_bead_indeces[[k]][[j]][i] <- !(Beads[[k]][[j]][i]-Beads[[k]][[j]][i-1] == 0)
+    }
+  }
+}
+# Find indeces
+Opp_bead_indeces <- lapply(Opp_bead_indeces, function(x){
+  lapply(x, function(y) which(y == TRUE))
+})
+Fit_BOOC_whole_model <- vector("list", length(Analyses_nos))
+
+for (i in 1:length(Opp_bead_indeces)){
+  for (j in 1:length(Opp_bead_indeces[[i]])){
+    
+    Fit_BOOC_whole_model[[i]][j] <- 
+      signif(sum((Responses[[i]][[j]][Opp_bead_indeces[[i]][[j]]] 
+                  - Predictions[[i]][[j]][Opp_bead_indeces[[i]][[j]]])^2), digits = 2)
+  }
+}
+  
+# Make a copy to pass to 'individual subjects' section - allows simple 
+# subsetting of BOOC fit by subjects selected
+Fit_BOOC_whole_model_copy <- Fit_BOOC_whole_model
+# Weight Fit_BOOC_whole_model_copy by length of trials (number of beads) divided by 10 
+Fit_BOOC_subject <- lapply(seq_along(Fit_BOOC_whole_model_copy), function(i){
+  (Fit_BOOC_whole_model_copy[[i]]/(N_beads[[i]]/10))
+})
+
+# Take the mean of the fits and adjust by length of bead seq (N_beads) for each analysis
+Fit_BOOC_whole_model <- lapply_mod(Fit_BOOC_whole_model,
+                                   function(i) mean(Fit_BOOC_whole_model[[i]])/N_beads[[i]])
+
+# For predictions, need to concatenate Mu2_0 prior at the start of each Prediction vector
+for (j in seq(Predictions))
+  for (i in seq(Predictions[[j]])){
+    Predictions[[j]][[i]] <- append(Predictions[[j]][[i]], Mu2_0[[j]][i], 0)
+  }
+
+  
+#------------------------------------------------
+# CREATE parametric models - ANOVA
+#------------------------------------------------
+
+# Create ANOVA models:
+# Om model
+Aov_mod_om <- lapply(Om_vector, function(x) aov(x$Om_vector ~ x$Group))
+# Get post-hoc tests
+Post_hoc_om <- lapply_mod(Aov_mod_om, function(i) 
+  data.frame(TukeyHSD(Aov_mod_om[[i]])$`x$Group`))
+
+# Nu model
+Aov_mod_nu <- lapply(Nu_vector, function(x) aov(x$Nu_vector ~ x$Group))
+# Get post-hoc tests
+Post_hoc_nu <- lapply_mod(Aov_mod_nu, function(i) 
+  data.frame(TukeyHSD(Aov_mod_nu[[i]])$`x$Group`))
+
+# M model
+Aov_mod_M <- lapply(M_vector, function(x) aov(x$M_vector ~ x$Group))
+# Get post-hoc tests
+Post_hoc_M <- lapply_mod(Aov_mod_M, function(i) 
+  data.frame(TukeyHSD(Aov_mod_M[[i]])$`x$Group`))
+
+# Phi model
+Aov_mod_phi <- lapply(Phi_vector, function(x) aov(x$Phi_vector ~ x$Group))
+# Get post-hoc tests
+Post_hoc_phi <- lapply_mod(Aov_mod_phi, function(i) 
+  data.frame(TukeyHSD(Aov_mod_phi[[i]])$`x$Group`))
+
+# Prep post-hoc comparisons for plot as data frame
+# Om
+for (i in 1: length(Post_hoc_om)){
+  Post_hoc_om[[i]]$Comparison <- factor(row.names(Post_hoc_om[[i]]))
+}
+# Nu  
+for (i in 1: length(Post_hoc_nu)){
+  Post_hoc_nu[[i]]$Comparison <- factor(row.names(Post_hoc_nu[[i]]))
+}
+# M
+for (i in 1: length(Post_hoc_M)){
+  Post_hoc_M[[i]]$Comparison <- factor(row.names(Post_hoc_M[[i]]))
+}
+# Phi
+for (i in 1: length(Post_hoc_M)){
+  Post_hoc_phi[[i]]$Comparison <- factor(row.names(Post_hoc_phi[[i]]))
+}
+Labels <- factor(c(rep("Omega", 3), rep("Nu", 3), rep("M", 3), 
+                   rep("Phi", 3)), levels = c("Omega", "Nu", "M", "Phi")) # 3 need to be 'N_groups'
+
+# Create data frames in a list combining the post-hoc tests on Om & Nu &
+# adding label for each parameter (for plotting)
+Post_hoc_df <- vector("list", length(Analyses_nos)) # Predefine
+for (i in 1:length(Analyses_nos)){
+  Post_hoc_df[[i]] <- cbind(rbind(Post_hoc_om[[i]], Post_hoc_nu[[i]], 
+                                  Post_hoc_M[[i]], Post_hoc_phi[[i]]), Labels)
+}
+
+```
+### **Test of ANOVA assumptions**
+##### Shapiro-Wilk tests of normality of residuals 
+##### [<0.05 = NOT normal]
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
