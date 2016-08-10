@@ -573,6 +573,10 @@ htmlTable(DTC_BC, cgroup=Tasks, n.cgroup= rep(2, N_tasks), header=rep(Groups, 2)
 # rating which comes after seeing what the opponent did)
 #-----------------------------------------------------------------------------------------------
 
+Healthy_PDG_act <- read.csv("Gilleen_healthy_PDG_action.csv", header=TRUE)
+Pat_PDG_act <- read.csv("Gilleen_patient_PDG_action.csv", header=TRUE)
+
+
 
 
 #-----------------------------------------------------------------------------------------------
