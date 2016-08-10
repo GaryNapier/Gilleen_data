@@ -501,6 +501,7 @@ htmlTable(DTC, cgroup=Tasks, n.cgroup= rep(2, N_tasks), header=rep(Groups, 2),
 # b) 2nd half DTC - no. of choices until subjects reach maximum certainty after the change 
 # of jar/trustworthiness in sequences B and C only
 #-----------------------------------------------------------------------------------------------
+# Get second half indeces of seqs B & C, PDG & beads
 Index_PDG_B <- 16:20
 Index_PDG_C <- 26:30
 
@@ -508,12 +509,62 @@ Index_beads_C <- 16:20
 Index_beads_B <- 26:30
 
 # PDG
-Healthy_PDG_B <- Healthy_PDG[FH_2] # Blue 1st half (1), Red 2nd (0)
-Healthy_PDG_C <- Healthy_PDG[FH_3] # Red 1st (0), Blue 2nd (1)
+Healthy_PDG_B <- Healthy_PDG[Index_PDG_B] # Blue 1st half (1), Red 2nd (0)
+Healthy_PDG_C <- Healthy_PDG[Index_PDG_C] # Red 1st (0), Blue 2nd (1)
 
-
+Patient_PDG_B <- Patient_PDG[Index_PDG_B]
+Patient_PDG_C <- Patient_PDG[Index_PDG_C]
 
 # Beads
+Healthy_beads_B <- Healthy_beads[Index_beads_B]
+Healthy_beads_C <- Healthy_beads[Index_beads_C]
+
+Patient_beads_B <- Patient_beads[Index_beads_B]
+Patient_beads_C <- Patient_beads[Index_beads_C]
+
+# Count how many draws to certainty, 2nd half BC
+
+# Healthy PDG BC
+DTC_B <- apply(Healthy_PDG_B, 1, function(x) min(which(x==1)))
+DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
+DTC_C <- apply(Healthy_PDG_C[,c(1:5)], 1, function(x) min(which(x==1)))
+DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
+
+DTC_healthy_PDG_BC <- (sum(c(DTC_B, DTC_C)) / 2) / N_subj_healthy
+
+# Patient PGD BC
+DTC_B <- apply(Patient_PDG_B, 1, function(x) min(which(x==1)))
+DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
+DTC_C <- apply(Patient_PDG_C, 1, function(x) min(which(x==1)))
+DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
+
+DTC_patient_PDG_BC <- (sum(c(DTC_B, DTC_C)) / 2) / N_subj_pat
+
+# Healthy beads BC
+DTC_B <- apply(Healthy_beads_B, 1, function(x) min(which(x==1)))
+DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
+DTC_C <- apply(Healthy_beads_C, 1, function(x) min(which(x==1)))
+DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
+
+DTC_healthy_beads_BC <- (sum(c(DTC_B, DTC_C)) / 2) / N_subj_healthy
+
+# Patient beads BC
+DTC_B <- apply(Patient_beads_B, 1, function(x) min(which(x==1)))
+DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
+DTC_C <- apply(Patient_beads_C, 1, function(x) min(which(x==1)))
+DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
+
+DTC_patient_beads_BC <- (sum(c(DTC_B, DTC_C)) / 2) / N_subj_pat
+
+DTC_BC <- signif(c(DTC_healthy_PDG_BC, 
+                   DTC_patient_PDG_BC, 
+                   DTC_healthy_beads_BC, 
+                   DTC_patient_beads_BC), digits=3)
+
+htmlTable(DTC_BC, cgroup=Tasks, n.cgroup= rep(2, N_tasks), header=rep(Groups, 2), 
+          align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
+          caption = "Average draws to certainty over second half of seqs B & C")
+
 
 
 #-----------------------------------------------------------------------------------------------
