@@ -41,6 +41,8 @@ N_groups <- 2
 
 Blue <- "#F1F0FA"
 
+Action <- c("Compete", "Cooperate")
+
 #---------------------------------------------------------------------------------------
 # Read in data
 #---------------------------------------------------------------------------------------
@@ -352,7 +354,7 @@ How_many_DTC_He_C <- sapply(Healthy_PDG_C, function(x) sum(x==0)  ) # Red 1st (0
 How_many_DTC_He_D <- sapply(Healthy_PDG_D, function(x) sum(x==0)  ) # Red jar (0)
 
 How_many_DTC_healthy_PDG <- data.frame(Draws=Draws,
-                                       No_subj = colMeans(rbind(How_many_DTC_He_A, 
+                                       Proportion_subjects = colMeans(rbind(How_many_DTC_He_A, 
                                                                 How_many_DTC_He_B, 
                                                                 How_many_DTC_He_C, 
                                                                 How_many_DTC_He_D) / N_subj_healthy ))
@@ -363,7 +365,7 @@ How_many_pat_C <- sapply(Patient_PDG_C, function(x) sum(x==0)  )
 How_many_pat_D <- sapply(Patient_PDG_D, function(x) sum(x==0)  )
 
 How_many_DTC_pat_PDG <- data.frame(Draws=Draws,
-                                   No_subj = colMeans(rbind(How_many_pat_A, 
+                                   Proportion_subjects = colMeans(rbind(How_many_pat_A, 
                                                             How_many_pat_B,
                                                             How_many_pat_C,
                                                             How_many_pat_D) / N_subj_pat ))
@@ -386,7 +388,7 @@ How_many_DTC_He_beads_C <- sapply(Healthy_beads_C, function(x) sum(x==1)  ) # Re
 How_many_DTC_He_beads_D <- sapply(Healthy_beads_D, function(x) sum(x==1)  ) # Red jar (0)
 
 How_many_DTC_healthy_beads <- data.frame(Draws=Draws, 
-                                         No_subj = colMeans(rbind(How_many_DTC_He_beads_A,
+                                         Proportion_subjects = colMeans(rbind(How_many_DTC_He_beads_A,
                                                                   How_many_DTC_He_beads_B, 
                                                                   How_many_DTC_He_beads_C,
                                                                   How_many_DTC_He_beads_D) / N_subj_healthy))
@@ -397,7 +399,7 @@ How_many_DTC_pat_beads_C <- sapply(Patient_beads_C, function(x) sum(x==0)  )
 How_many_DTC_pat_beads_D <- sapply(Patient_beads_D, function(x) sum(x==0)  )
 
 How_many_DTC_pat_beads <- data.frame(Draws=Draws, 
-                                     No_subj = colMeans(rbind(How_many_DTC_pat_beads_A, 
+                                     Proportion_subjects = colMeans(rbind(How_many_DTC_pat_beads_A, 
                                                               How_many_DTC_pat_beads_B, 
                                                               How_many_DTC_pat_beads_C,
                                                               How_many_DTC_pat_beads_D) / N_subj_pat ))
@@ -411,19 +413,20 @@ How_many_DTC_pat_beads <- data.frame(Draws=Draws,
 # Get_how_many_DTC()
 
 # Plots of how many DTC
-DTC_PDG <- ggplot(NULL, aes(Draws, No_subj))+
+DTC_PDG <- ggplot(NULL, aes(Draws, Proportion_subjects))+
+  theme_grey()+
   stat_summary_bin(aes(fill = "Healthy"),
                    data=How_many_DTC_healthy_PDG,
                    fun.y="sum", geom = "bar", alpha=.5)+
   stat_summary_bin(aes(fill= "Patient"), 
                    data=How_many_DTC_pat_PDG, 
                    fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
   ggtitle("PDG")+
-  scale_y_continuous(limits=c(0, 0.15))+
-  theme_grey()+
-  theme(legend.position="bottom")
+  scale_y_continuous(limits=c(0, 0.15))
+  
 
-DTC_beads <- ggplot(NULL, aes(Draws, No_subj))+
+DTC_beads <- ggplot(NULL, aes(Draws, Proportion_subjects))+
   stat_summary_bin(aes(fill = "Healthy"),
                    data=How_many_DTC_healthy_beads,
                    fun.y="sum", geom = "bar", alpha=.5)+
@@ -436,10 +439,10 @@ DTC_beads <- ggplot(NULL, aes(Draws, No_subj))+
   theme(legend.position="none")
 
 Legend <- g_legend(DTC_PDG)
-grid.arrange(arrangeGrob(DTC_PDG+theme(legend.position="none"), 
-                         DTC_beads+theme(legend.position="none"), nrow=1), Legend, ncol=2, 
-             top="Proportion of subjects making DTC,
-             averaged across all four beads tasks", heights=c(10, 1)) 
+grid.arrange(DTC_PDG+theme(legend.position="none"), DTC_beads, Legend, ncol=2, nrow=2, 
+             layout_matrix=rbind(c(1, 2), c(3, 3)), 
+             top="Proportion of subjects making DTC, averaged across all four beads tasks",
+             widths=c(2.7, 2.7), heights=c(2.5, 0.2))
 
 #-----------------------------------------------------------------------------------------------
 # Count how many draws to certainty
@@ -571,11 +574,92 @@ htmlTable(DTC_BC, cgroup=Tasks, n.cgroup= rep(2, N_tasks), header=rep(Groups, 2)
 # c) initial decision to cooperate/compete in the PDG (I don’t know if James has supplied 
 # this data - NB I’m talking about the initial decision, not the initial trustworthiness 
 # rating which comes after seeing what the opponent did)
+# (1=compete, 2=cooperate)
 #-----------------------------------------------------------------------------------------------
 
-Healthy_PDG_act <- read.csv("Gilleen_healthy_PDG_action.csv", header=TRUE)
+Healthy_PDG_act <- read.csv("Gilleen_healthy_PGD_action.csv", header=TRUE)
 Pat_PDG_act <- read.csv("Gilleen_patient_PDG_action.csv", header=TRUE)
 
+# Drop ID and save
+Healthy_ID_PDG_action <- Healthy_PDG_act[,1]
+Patient_ID_PDG_action <- Pat_PDG_act[,1]
+
+Healthy_PDG_act <- Healthy_PDG_act[,-1]
+Pat_PDG_act <- Pat_PDG_act[,-1]
+
+# Get initial compete/cooperate actions
+Indeces <- c(1, 11, 21, 31)
+Healthy_actions <- Healthy_PDG_act[, Indeces]
+Healthy_actions <- unname(unlist(Healthy_actions))
+
+# Healthy_action_A <- Healthy_PDG_act[,1]
+# Healthy_action_B <- Healthy_PDG_act[,11]
+# Healthy_action_C <- Healthy_PDG_act[,21]
+# Healthy_action_D <- Healthy_PDG_act[,31]
+
+Pat_actions <- Pat_PDG_act[, Indeces]
+Pat_actions <- unname(unlist(Pat_actions))
+
+# Get proportions
+Healthy_prop_compete <- sum(Healthy_actions==1) / N_subj_healthy / 4 # Compete
+Healthy_prop_cooperate <- sum(Healthy_actions==2) / N_subj_healthy / 4 # Cooperate
+
+Pat_prop_compete <- sum(Pat_actions==1) / N_subj_pat / 4
+Pat_prop_cooperate <- sum(Pat_actions==2) / N_subj_pat / 4
+
+# Standard errors
+SE_prop <- function(p, n){
+  sqrt((p*(1-p))/n)
+}
+
+SE_healthy_compete <-  SE_prop(Healthy_prop_compete, N_subj_healthy)
+SE_healthy_cooperate <- SE_prop(Healthy_prop_cooperate, N_subj_healthy)
+SE_pat_compete <- SE_prop(Pat_prop_compete, N_subj_pat)
+SE_pat_cooperate <- SE_prop(Pat_prop_cooperate, N_subj_pat)
+
+SE_action <- c(SE_healthy_compete, SE_healthy_cooperate, SE_pat_compete, SE_pat_cooperate)
+Limits <- aes()
+
+# Put proportions into dataframe & htmlTable
+Action_table <- signif(c(Healthy_prop_compete, Healthy_prop_cooperate, 
+                         Pat_prop_compete, Pat_prop_cooperate), digits=3)
+
+htmlTable(Action_table, cgroup=Groups, n.cgroup= rep(2, N_tasks), header=rep(Action, 2), 
+          align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
+          caption = "Proportion of subjects' initial decisions in PDG, 
+          averaged across all four seqs")
+
+Groups <- c(rep("Healthy", 2), rep("Patient", 2))
+
+Group_action <- c("Healthy_compete", "Healthy_cooperate", "Patient_compete", "Patient_cooperate")
+
+Action_df <- data.frame(Groups, Group_action, Action_table)
+
+ggplot(Action_df, aes(x=Group_action, y=Action_table, fill=Groups))+
+  geom_bar(stat="identity") +
+  scale_fill_discrete(name="Group", 
+                      breaks=c(1, 2), 
+                      labels=c("Healthy", "Patient"))+
+  xlab("Group & action")+ylab("Proportion of subjects")+
+  geom_errorbar(aes(ymin=Action_table-SE_action, ymax=Action_table+SE_action), width=0.25)+
+  theme_gray()
+
+# Stats
+
+Healthy_actions
+
+Pat_actions
+
+xtabs(Healthy_actions)
+
+
+
+# Pat_action_A <- Pat_PDG_act[, 1]
+# Pat_action_B <- Pat_PDG_act[, 11]
+# Pat_action_C <- Pat_PDG_act[, 21]
+# Pat_action_D <- Pat_PDG_act[, 31]
+
+# 
 
 
 
