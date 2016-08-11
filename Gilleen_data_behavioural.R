@@ -149,7 +149,7 @@ Plot_PDG <- function(){
     geom_line(data=Patient_PDG_sum, aes(x=Sequence, y=Data), colour = "blue", size = 1, alpha=.7)+
     geom_point(data=data.frame(Seq_PDG),
                aes(x=1:length(Seq_PDG), y=Seq_PDG, colour=factor(Seq_PDG)),
-               size=2, show.legend = FALSE) +
+               size=3, show.legend = FALSE) +
     geom_point()+
     geom_point()+
     scale_x_discrete(labels = Seq_PDG)+
@@ -174,7 +174,7 @@ Plot_beads <- function() {
     geom_line(data=Patient_beads_sum, aes(x=Sequence, y=Data), colour = "blue", size = 1, alpha=.7)+
     geom_point(data=data.frame(Seq_beads),
                aes(x=1:length(Seq_beads), y=Seq_beads, colour=factor(Seq_beads)),
-               size=2, show.legend = FALSE) +
+               size=3, show.legend = FALSE) +
     geom_point()+
     geom_point()+
     scale_x_discrete(labels = Seq_beads)+
@@ -592,11 +592,6 @@ Indeces <- c(1, 11, 21, 31)
 Healthy_actions <- Healthy_PDG_act[, Indeces]
 Healthy_actions <- unname(unlist(Healthy_actions))
 
-# Healthy_action_A <- Healthy_PDG_act[,1]
-# Healthy_action_B <- Healthy_PDG_act[,11]
-# Healthy_action_C <- Healthy_PDG_act[,21]
-# Healthy_action_D <- Healthy_PDG_act[,31]
-
 Pat_actions <- Pat_PDG_act[, Indeces]
 Pat_actions <- unname(unlist(Pat_actions))
 
@@ -664,16 +659,6 @@ htmlTable(Test_table, header=c("Chi-sq", "d.f.", "p"),
           align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
           caption = txtMergeLines("Chi-sq test of proportions for initial action on PDG"))
 
-
-# Pat_action_A <- Pat_PDG_act[, 1]
-# Pat_action_B <- Pat_PDG_act[, 11]
-# Pat_action_C <- Pat_PDG_act[, 21]
-# Pat_action_D <- Pat_PDG_act[, 31]
-
-# 
-
-
-
 #-----------------------------------------------------------------------------------------------
 # d) are the group average trust ratings on each decision point the same in sequences
 # B and C? i.e. do we find the effect James found in the dissertation (Figure 5), that 
@@ -682,9 +667,52 @@ htmlTable(Test_table, header=c("Chi-sq", "d.f.", "p"),
 #-----------------------------------------------------------------------------------------------
 
 
+Index_A <- 1:10  # Mostly 1 - cooperate?
+Index_D <- 31:40 # Mostly 0 - compete?
+
+Healthy_PDG_A <- Healthy_PDG[Index_A]
+Healthy_PDG_D <- Healthy_PDG[Index_D]
+
+Pat_PDG_A <- Patient_PDG[Index_A]
+Pat_PDG_D <- Patient_PDG[Index_D]
+
+Test_A <- sapply(seq(Healthy_PDG_A), function(i) t.test(Healthy_PDG_A[,i], Pat_PDG_A[,i]))
+Test_D <- sapply(seq(Healthy_PDG_D), function(i) t.test(Healthy_PDG_D[,i], Pat_PDG_D[,i]))
+
+# Get vector of p-vals
+P_vals <- c(signif(unlist(Test_A["p.value",]), digits=3), signif(unlist(Test_D["p.value",]), digits=3) )
+
+Sig <- c(which(P_vals <= 0.05) )
 
 
+# Plot Seqs A and D
+Plot_PDG_AD <- function(){
+  ggplot(Healthy_PDG_sum[c(Index_A, Index_D), ], aes(x=Sequence, y=Data, group=1)) +
+    geom_errorbar(aes(ymin=Data-se, ymax=Data+se), width=.2)+
+    geom_line(colour = "red", size = 1, alpha=.7)+
+    geom_errorbar(data=Patient_PDG_sum[c(Index_A, Index_D), ],
+                  aes(ymin=Data-se, ymax=Data+se), width=.2)+
+    geom_line(data=Patient_PDG_sum[c(Index_A, Index_D), ], 
+              aes(x=Sequence, y=Data), colour = "blue", size = 1, alpha=.7)+
+    geom_point(data=data.frame(Seq_PDG[c(Index_A, Index_D)]),
+               aes(x=1:length(Seq_PDG[c(Index_A, Index_D)]),
+                   y=Seq_PDG[c(Index_A, Index_D)], colour=factor(Seq_PDG[c(Index_A, Index_D)])),
+               size=5, show.legend = FALSE) +
+    geom_point()+
+    geom_point()+
+    scale_x_discrete(labels = Seq_PDG[c(Index_A, Index_D)])+
+    ylim(0, 1)+
+    geom_vline(xintercept = c(10.5), linetype = "longdash")+
+    geom_hline(yintercept = Values, alpha=Alpha_line)+
+    annotate("text", x = c(5, 15), y=0.1, label = c("A", "D"), fontface = "bold")+
+    annotate("text", x = Sig, y = 0.8, label="*", fontface="bold", size=8)+
+    ggtitle("Mean PDG data, healthy (red) & patient (blue). * = significant")+
+    theme_grey()
+}
+# x11()
+Plot_PDG_AD()
 
+Test_A[c("statistic", "parameter", "p.value")]
 
 
 
