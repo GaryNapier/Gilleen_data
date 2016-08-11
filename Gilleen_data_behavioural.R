@@ -624,10 +624,14 @@ Limits <- aes()
 Action_table <- signif(c(Healthy_prop_compete, Healthy_prop_cooperate, 
                          Pat_prop_compete, Pat_prop_cooperate), digits=3)
 
+Action_table <- rbind(c(sum(Healthy_actions==1), sum(Healthy_actions==2), 
+                        sum(Pat_actions==1), sum(Pat_actions==2)), Action_table)
+
 htmlTable(Action_table, cgroup=Groups, n.cgroup= rep(2, N_tasks), header=rep(Action, 2), 
           align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
+          rnames=c("Total", "Proportion"),
           caption = "Proportion of subjects' initial decisions in PDG, 
-          averaged across all four seqs")
+          across all four seqs")
 
 Groups <- c(rep("Healthy", 2), rep("Patient", 2))
 
@@ -645,13 +649,20 @@ ggplot(Action_df, aes(x=Group_action, y=Action_table, fill=Groups))+
   theme_gray()
 
 # Stats
+# Question: Do healthy differ from groups in the number of compete moves?
 
-Healthy_actions
+Group <- c(rep("Healthy",  N_subj_healthy*4), rep("Patient", N_subj_pat*4))
 
-Pat_actions
+Test <- data.frame(Action=c(Healthy_actions, Pat_actions), Group)
+           
+Table <- xtabs(~ Group+Action, data=Test)
+Prop_test <- prop.test(Table)
 
-xtabs(Healthy_actions)
+Test_table <- signif(c(Prop_test$statistic, Prop_test$parameter, Prop_test$p.value), digits=3)
 
+htmlTable(Test_table, header=c("Chi-sq", "d.f.", "p"), 
+          align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
+          caption = txtMergeLines("Chi-sq test of proportions for initial action on PDG"))
 
 
 # Pat_action_A <- Pat_PDG_act[, 1]
