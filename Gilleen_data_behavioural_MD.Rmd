@@ -165,7 +165,7 @@ of jar/trustworthiness in Seq B and Seq C only.
 
 **-------------------------------------------------------------------------------------------------**
 
-##### Plots of mean responses, PDG and beads tasks
+### Plots of mean responses, PDG and beads tasks
 
 ```{r echo=F, warning=FALSE, message=FALSE}
 
@@ -278,7 +278,9 @@ Plot_beads()
 
 **-------------------------------------------------------------------------------------------------**
 
-##### 1. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (1 or 0) in the first half of either task.
+#### 1. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (1 or 0) in the first half of either task.
+
+##### NB - if subjects took more than 5 trials to certainty, this was counted as '5', so there were **at least** 5 trials to certainty. 
 
 ```{r echo=F, warning=FALSE, message=FALSE}
 
@@ -513,7 +515,7 @@ Number_DTC_beads
 
 **-------------------------------------------------------------------------------------------------**
 
-2. Second half DTC - How many trials until subjects reach maximum certainty after the change 
+#### 2. Second half DTC - How many trials until subjects reach maximum certainty after the change 
 of jar/trustworthiness in Seq B and Seq C only.
 
 ```{r echo=F, warning=FALSE, message=FALSE}
@@ -635,7 +637,7 @@ SH_Number_DTC_beads
 
 **-------------------------------------------------------------------------------------------------**
 
-3. The initial decision whether to cooperate/compete in the PDG in all four sequences.
+#### 3. The initial decision whether to cooperate/compete in the PDG in all four sequences.
 
 ```{r echo=F, warning=FALSE, message=FALSE}
 
@@ -734,7 +736,7 @@ htmlTable(Test_table, header=c("Chi-sq", "d.f.", "p"),
 
 **-------------------------------------------------------------------------------------------------**
 
-4. The average trust ratings on each trial the same in Seq A and Seq D ('mostly cooperate', 'mostly compete', respectively).
+#### 4. The average trust ratings on each trial the same in Seq A and Seq D ('mostly cooperate', 'mostly compete', respectively).
 
 ```{r echo=F, warning=FALSE, message=FALSE}
 
