@@ -1,18 +1,27 @@
+---
+title: "Gilleen data behavioural analyses of PDG and beads tasks"
+author: "Gary Napier"
+date: "12 August 2016"
+output: html_document
+---
+
+<!-- misc setup -->
+
+```{r, echo=F, warning=FALSE, message=FALSE}
 
 # Sources packages and custom functions
 source("https://raw.githubusercontent.com/GaryNapier/Packages_functions/master/PACKAGES.R")
 
 # GILLEEN DATA BEHAVIOURAL
 
-# Attached is the complete PDG and Beads data for the Healthy and Patients. 
-# There are 3 tabs, the PDG action for each round (1=compete, 2=cooperate); 
-# PDG trust (the rating of trust after each round (1=totally untrustworthy...
-# 7 totally trustworthy, 4 unsure) and Beads (1= definitely Jar A ... 
-# 7=definitely Jar B; 4 unsure). I hope this is clear.
+# There are 3 datasets:
+#   - PDG action for each round (1=compete, 2=cooperate); 
+#   - PDG trust (the rating of trust after each round (1=totally untrustworthy, 
+#     7 totally trustworthy, 4 unsure) and
+#   - Beads (1= definitely Jar A, 7=definitely Jar B; 4 unsure). 
 #                                                                                                                                                                
-# As a reminder, for the PDG, A=mostly cooperative, D=mostly competitive,
-# B=first half mostly cooperative switching to second half mostly competitive,
-# and C vice versa). 
+# For the PDG, A=mostly cooperative, D=mostly competitive, B=first half mostly 
+# cooperative switching to second half mostly competitive, and C vice versa). 
 
 # p.s. there appears to be duplication of ID numbers for the patients but don't
 # worry they are different - student confusion, but for data organisation on other
@@ -25,10 +34,7 @@ tryCatch({
   setwd("~/Dropbox/Gilleen_Analysis/For Gary")
 })
 
-#---------------------------------------------------------------------------------------
-# Misc setup
-#---------------------------------------------------------------------------------------
-
+# Misc
 Bins <- 10
 Alpha_hist <- .6
 Alpha_dens <- .3
@@ -136,6 +142,33 @@ Patient_PDG_sum <- summarySE(Patient_PDG_long, measurevar="Data", groupvars="Seq
 Patient_beads_sum <- summarySE(Patient_beads_long, measurevar="Data", groupvars="Sequence")
 
 
+```
+
+### Three datasets:
+- PDG action for each round (compete /cooperate); 
+- PDG trust rating (0 = totally untrustworthy, 1 = totally trustworthy, 0.5 = unsure) and 
+- Beads (0 = definitely jar A, 1 = definitely jar B, 0.5 = unsure).
+
+### Four sequences:
+- PDG task: Seq A = mostly cooperative, Seq D = mostly competitive, Seq B = first half mostly cooperative switching to second half mostly competitive, and Seq C vice versa. 
+- Beads task: As the PDG task except 'comptetitive' and 'cooperative' replaced by 'Jar A' and 'Jar B'
+
+### Questions - Are there group differences in:
+1. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (1 or 0) in the first half of either task. Also, how many subjects, as a proportion of group numbers, reach maximum certainty at which trial indeces?
+
+2. Second half DTC - How many trials until subjects reach maximum certainty after the change 
+of jar/trustworthiness in Seq B and Seq C only.
+
+3. The initial decision whether to cooperate/compete in the PDG in all four sequences.
+
+4. The average trust ratings on each trial the same in Seq A and Seq D ('mostly cooperate', 'mostly compete', respectively).
+
+**-------------------------------------------------------------------------------------------------**
+
+##### Plots of mean responses, PDG and beads tasks
+
+```{r echo=F, warning=FALSE, message=FALSE}
+
 #---------------------------------------------------------------------------------------
 # Plots
 #---------------------------------------------------------------------------------------
@@ -160,7 +193,7 @@ Plot_PDG <- function(){
     ggtitle("Mean PDG data, healthy (red) & patient (blue)")+
     theme_grey()
 }
-# x11()
+
 Plot_PDG()
 
 #
@@ -185,151 +218,72 @@ Plot_beads <- function() {
     ggtitle("Mean beads data, healthy (red) & patient (blue)")+
     theme_grey()
 }
-# x11()
+
 Plot_beads()
 
-#
 
-# Plot individuals
-Plot_ind <- function(Data_set, Subject){
-  Plot_data <- data.frame(t(Data_set[Subject,]))
-  Data_set_name <- deparse(substitute(Data_set))
-  
-  ggplot()+
-    geom_line(data=Plot_data, aes(x=1:length(Plot_data
-                                             [,1]), y=Plot_data[,1]),
-              colour = "red", size = 1, alpha=.7)+
-    geom_point(data=Plot_data, aes(x=1:length(Plot_data[,1]), y=Plot_data[,1]))+
-    
-    {if (Data_set_name == "Healthy_PDG" || Data_set_name == "Patient_PDG"){
-      geom_point(data=data.frame(Seq_PDG),
-                 aes(x=1:length(Seq_PDG), y=Seq_PDG, colour=factor(Seq_PDG)),
-                 size=2, show.legend = FALSE) 
-    }else{
-      geom_point(data=data.frame(Seq_beads),
-                 aes(x=1:length(Seq_beads), y=Seq_beads, colour=factor(Seq_beads)),
-                 size=2, show.legend = FALSE) 
-    }}+
-    
-    {if (Data_set_name == "Healthy_PDG" || Data_set_name == "Patient_PDG"){
-      scale_x_continuous("Beads", breaks=1:length(Plot_data[,1]), labels=Seq_PDG)
-    }else{
-      scale_x_continuous("Beads", breaks=1:length(Plot_data[,1]), labels=Seq_beads)
-    }}+
-    
-    {if (Data_set_name == "Healthy_PDG" || Data_set_name == "Patient_PDG"){
-      annotate("text", x = c(5, 15, 25, 35), y=0.1, label = c("A", "B", "C", "D"), fontface = "bold")
-    }else{
-      annotate("text", x = c(5, 15, 25, 35), y=0.1, label = c("D", "C", "B", "A"), fontface = "bold")
-    }}+
-    
-    coord_cartesian(ylim=c(0,1))+
-    scale_y_continuous(breaks = seq(0, 1, 0.1))+
-    ylab("Responses (jar probability estimate)")+
-    geom_vline(xintercept = c(10.5, 20.5, 30.5), linetype = "longdash")+
-    geom_hline(yintercept = Values, alpha=Alpha_line)+
-    ggtitle(sprintf(strcat(Data_set_name, " subject %g"),Subject))+
-    theme_grey()
-  
-}
+```
+
+<!--##### Histograms of mean responses on each trial, PDG and beads tasks-->
+
+```{r echo=F, warning=FALSE, message=FALSE}
+# Histograms of mean responses on each trial (healthy PDG/beads, patient PDG/beads)
 # x11()
-Plot_ind(Healthy_PDG, 20)
-
-
-# 
-# x11()
-# # Histograms of mean responses on each trial (healthy PDG/beads, patient PDG/beads)
-# Hist_healthy_PDG <- ggplot()+
-#   geom_histogram(data= data.frame(Healthy_PDG_mean), 
-#                  aes(Healthy_PDG_mean),
-#                  bins=Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
+# Hist_healthy_PDG <- ggplot(data= data.frame(Healthy_PDG_mean), aes(x=Healthy_PDG_mean))+
+#   geom_histogram(aes(y=..count..),
+#                  bins =Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
 #   coord_cartesian(xlim=c(0,1), ylim=c(0,10))+
 #   scale_x_continuous(breaks = seq(0, 1, 0.1))+
 #   scale_y_continuous(breaks = seq(0, 10, 1))+
 #   ggtitle("Healthy_PDG_mean")+
-#   labs(x="Responses (jar probability estimate)")
-# Hist_patient_PDG <- ggplot()+
-#   geom_histogram(data= data.frame(Patient_PDG_mean), 
-#                  aes(Patient_PDG_mean),
-#                  bins=Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
+#   labs(x="Responses (jar probability estimate)", y="Count")+
+#   geom_density(alpha=Alpha_dens, fill="red")+
+#   theme_grey()
+# Hist_patient_PDG <- ggplot(data= data.frame(Patient_PDG_mean), aes(x=Patient_PDG_mean))+
+#   geom_histogram(aes(y=..count..),
+#                  bins =Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
 #   coord_cartesian(xlim=c(0,1), ylim=c(0,10))+
 #   scale_x_continuous(breaks = seq(0, 1, 0.1))+
 #   scale_y_continuous(breaks = seq(0, 10, 1))+
 #   ggtitle("Patient_PDG_mean")+
-#   labs(x="Responses (jar probability estimate)")
-# Hist_healthy_beads <- ggplot()+
-#   geom_histogram(data= data.frame(Healthy_beads_mean), 
-#                  aes(Healthy_beads_mean),
-#                  bins=Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
+#   labs(x="Responses (jar probability estimate)", y="Count")+
+#   geom_density(alpha=Alpha_dens, fill="red")+
+#   theme_grey()
+# Hist_healthy_beads <- ggplot(data= data.frame(Healthy_beads_mean), aes(x=Healthy_beads_mean))+
+#   geom_histogram(aes(y=..count..),
+#                  bins =Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
 #   coord_cartesian(xlim=c(0,1), ylim=c(0,10))+
 #   scale_x_continuous(breaks = seq(0, 1, 0.1))+
 #   scale_y_continuous(breaks = seq(0, 10, 1))+
 #   ggtitle("Healthy_beads_mean")+
-#   labs(x="Responses (jar probability estimate)")
-# Hist_patient_beads <- ggplot()+
-#   geom_histogram(data= data.frame(Patient_beads_mean), 
-#                  aes(Patient_beads_mean),
-#                  bins=Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
+#   labs(x="Responses (jar probability estimate)", y="Count")+
+#   geom_density(alpha=Alpha_dens, fill="red")+
+#   theme_grey()
+# Hist_patient_beads <- ggplot(data= data.frame(Patient_beads_mean), aes(x=Patient_beads_mean))+
+#   geom_histogram(aes(y=..count..),
+#                  bins =Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
 #   coord_cartesian(xlim=c(0,1), ylim=c(0,10))+
 #   scale_x_continuous(breaks = seq(0, 1, 0.1))+
 #   scale_y_continuous(breaks = seq(0, 10, 1))+
 #   ggtitle("Patient_beads_mean")+
-#   labs(x="Responses (jar probability estimate)")
+#   labs(x="Responses (jar probability estimate)", y="Count")+
+#   geom_density(alpha=Alpha_dens, fill="red")+
+#   theme_grey()
 # grid.arrange(Hist_healthy_PDG, Hist_patient_PDG, Hist_healthy_beads,
-#              Hist_patient_beads, ncol=2, nrow=2)
+#              Hist_patient_beads, ncol=2, nrow=2, 
+#              top=textGrob("Histograms of mean responses on each trial"))
 
 
-# Histograms of mean responses on each trial (healthy PDG/beads, patient PDG/beads)
-# x11()
-Hist_healthy_PDG <- ggplot(data= data.frame(Healthy_PDG_mean), aes(x=Healthy_PDG_mean))+
-  geom_histogram(aes(y=..count..),
-                 bins =Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
-  coord_cartesian(xlim=c(0,1), ylim=c(0,10))+
-  scale_x_continuous(breaks = seq(0, 1, 0.1))+
-  scale_y_continuous(breaks = seq(0, 10, 1))+
-  ggtitle("Healthy_PDG_mean")+
-  labs(x="Responses (jar probability estimate)", y="Count")+
-  geom_density(alpha=Alpha_dens, fill="red")
-Hist_patient_PDG <- ggplot(data= data.frame(Patient_PDG_mean), aes(x=Patient_PDG_mean))+
-  geom_histogram(aes(y=..count..),
-                 bins =Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
-  coord_cartesian(xlim=c(0,1), ylim=c(0,10))+
-  scale_x_continuous(breaks = seq(0, 1, 0.1))+
-  scale_y_continuous(breaks = seq(0, 10, 1))+
-  ggtitle("Patient_PDG_mean")+
-  labs(x="Responses (jar probability estimate)", y="Count")+
-  geom_density(alpha=Alpha_dens, fill="red")
-Hist_healthy_beads <- ggplot(data= data.frame(Healthy_beads_mean), aes(x=Healthy_beads_mean))+
-  geom_histogram(aes(y=..count..),
-                 bins =Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
-  coord_cartesian(xlim=c(0,1), ylim=c(0,10))+
-  scale_x_continuous(breaks = seq(0, 1, 0.1))+
-  scale_y_continuous(breaks = seq(0, 10, 1))+
-  ggtitle("Healthy_beads_mean")+
-  labs(x="Responses (jar probability estimate)", y="Count")+
-  geom_density(alpha=Alpha_dens, fill="red")
-Hist_patient_beads <- ggplot(data= data.frame(Patient_beads_mean), aes(x=Patient_beads_mean))+
-  geom_histogram(aes(y=..count..),
-                 bins =Bins, colour="gray", fill="blue", alpha=Alpha_hist)+
-  coord_cartesian(xlim=c(0,1), ylim=c(0,10))+
-  scale_x_continuous(breaks = seq(0, 1, 0.1))+
-  scale_y_continuous(breaks = seq(0, 10, 1))+
-  ggtitle("Patient_beads_mean")+
-  labs(x="Responses (jar probability estimate)", y="Count")+
-  geom_density(alpha=Alpha_dens, fill="red")
-grid.arrange(Hist_healthy_PDG, Hist_patient_PDG, Hist_healthy_beads,
-             Hist_patient_beads, ncol=2, nrow=2, 
-             top=textGrob("Histograms of mean responses on each trial"))
+```
 
+**-------------------------------------------------------------------------------------------------**
 
-#-----------------------------------------------------------------------------------------------
-# For the behavioural measures, we want to know if there are group differences in 
+##### 1. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (1 or 0) in the first half of either task.
 
-# a) 1st half ‘draws to certainty (DTC)’ - no. of choices until subjects
-# reach maximum certainty in 1st half either task.
-#-----------------------------------------------------------------------------------------------
+```{r echo=F, warning=FALSE, message=FALSE}
 
-# Get_how_many_DTC <- function(){
+# SETUP HOW MANY 
+# How many subjects make a DTC at which indeces? - Get data
 FH_1 <- 1:5
 FH_2 <- 11:15
 FH_3 <- 21:25
@@ -404,106 +358,166 @@ How_many_DTC_pat_beads <- data.frame(Draws=Draws,
                                                               How_many_DTC_pat_beads_C,
                                                               How_many_DTC_pat_beads_D) / N_subj_pat ))
 
-# return(How_many_DTC_healthy_PDG)
-# return(How_many_DTC_pat_PDG)
-# return(How_many_DTC_healthy_beads)
-# return(How_many_DTC_pat_beads)
-# }
 
-# Get_how_many_DTC()
+# SETUP NO OF TRIALS
 
-# Plots of how many DTC
-DTC_PDG <- ggplot(NULL, aes(Draws, Proportion_subjects))+
-  theme_grey()+
-  stat_summary_bin(aes(fill = "Healthy"),
-                   data=How_many_DTC_healthy_PDG,
-                   fun.y="sum", geom = "bar", alpha=.5)+
-  stat_summary_bin(aes(fill= "Patient"), 
-                   data=How_many_DTC_pat_PDG, 
-                   fun.y="sum", geom = "bar", alpha=.5)+
-  theme(legend.position="bottom")+
-  ggtitle("PDG")+
-  scale_y_continuous(limits=c(0, 0.15))
-  
-
-DTC_beads <- ggplot(NULL, aes(Draws, Proportion_subjects))+
-  stat_summary_bin(aes(fill = "Healthy"),
-                   data=How_many_DTC_healthy_beads,
-                   fun.y="sum", geom = "bar", alpha=.5)+
-  stat_summary_bin(aes(fill= "Patient"), 
-                   data=How_many_DTC_pat_beads, 
-                   fun.y="sum", geom = "bar", alpha=.5)+
-  ggtitle("Beads")+
-  scale_y_continuous(limits=c(0, 0.15))+
-  theme_grey()+
-  theme(legend.position="none")
-
-Legend <- g_legend(DTC_PDG)
-grid.arrange(DTC_PDG+theme(legend.position="none"), DTC_beads, Legend, ncol=2, nrow=2, 
-             layout_matrix=rbind(c(1, 2), c(3, 3)), 
-             top="Proportion of subjects making DTC, averaged across all four beads tasks",
-             widths=c(2.7, 2.7), heights=c(2.5, 0.2))
-
-#-----------------------------------------------------------------------------------------------
-# Count how many draws to certainty
 # Healthy PDG
-DTC_A <- apply(Healthy_PDG_A[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_A <- ifelse(DTC_A==Inf, 5, DTC_A)
-DTC_B <- apply(Healthy_PDG_B[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
-DTC_C <- apply(Healthy_PDG_C[,c(1:5)], 1, function(x) min(which(x==0)))
-DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
-DTC_D <- apply(Healthy_PDG_D[,c(1:5)], 1, function(x) min(which(x==0)))
-DTC_D <- ifelse(DTC_D==Inf, 5, DTC_D)
+Healthy_PDG_DTC_A <- apply(Healthy_PDG_A[,c(1:5)], 1, function(x) min(which(x==1)))
+Healthy_PDG_DTC_A <- ifelse(Healthy_PDG_DTC_A==Inf, 5, Healthy_PDG_DTC_A)
+Healthy_PDG_DTC_B <- apply(Healthy_PDG_B[,c(1:5)], 1, function(x) min(which(x==1)))
+Healthy_PDG_DTC_B <- ifelse(Healthy_PDG_DTC_B==Inf, 5, Healthy_PDG_DTC_B)
+Healthy_PDG_DTC_C <- apply(Healthy_PDG_C[,c(1:5)], 1, function(x) min(which(x==0)))
+Healthy_PDG_DTC_C <- ifelse(Healthy_PDG_DTC_C==Inf, 5, Healthy_PDG_DTC_C)
+Healthy_PDG_DTC_D <- apply(Healthy_PDG_D[,c(1:5)], 1, function(x) min(which(x==0)))
+Healthy_PDG_DTC_D <- ifelse(Healthy_PDG_DTC_D==Inf, 5, Healthy_PDG_DTC_D)
 
-DTC_healthy_PDG <- (sum(c(DTC_A, DTC_B, DTC_C, DTC_D)) / 4) / N_subj_healthy
+DTC_healthy_PDG <- (sum(c(Healthy_PDG_DTC_A, Healthy_PDG_DTC_B, 
+                          Healthy_PDG_DTC_C, Healthy_PDG_DTC_D)) / 4) / N_subj_healthy
 
 # Patient PDG
-DTC_A <- apply(Patient_PDG_A[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_A <- ifelse(DTC_A==Inf, 5, DTC_A)
-DTC_B <- apply(Patient_PDG_B[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
-DTC_C <- apply(Patient_PDG_C[,c(1:5)], 1, function(x) min(which(x==0)))
-DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
-DTC_D <- apply(Patient_PDG_D[,c(1:5)], 1, function(x) min(which(x==0)))
-DTC_D <- ifelse(DTC_D==Inf, 5, DTC_D)
+Pat_PDG_DTC_A <- apply(Patient_PDG_A[,c(1:5)], 1, function(x) min(which(x==1)))
+Pat_PDG_DTC_A <- ifelse(Pat_PDG_DTC_A==Inf, 5, Pat_PDG_DTC_A)
+Pat_PDG_DTC_B <- apply(Patient_PDG_B[,c(1:5)], 1, function(x) min(which(x==1)))
+Pat_PDG_DTC_B <- ifelse(Pat_PDG_DTC_B==Inf, 5, Pat_PDG_DTC_B)
+Pat_PDG_DTC_C <- apply(Patient_PDG_C[,c(1:5)], 1, function(x) min(which(x==0)))
+Pat_PDG_DTC_C <- ifelse(Pat_PDG_DTC_C==Inf, 5, Pat_PDG_DTC_C)
+Pat_PDG_DTC_D <- apply(Patient_PDG_D[,c(1:5)], 1, function(x) min(which(x==0)))
+Pat_PDG_DTC_D <- ifelse(Pat_PDG_DTC_D==Inf, 5, Pat_PDG_DTC_D)
 
-DTC_pat_PDG <- (sum(c(DTC_A, DTC_B, DTC_C, DTC_D)) / 4) / N_subj_pat
+DTC_pat_PDG <- (sum(c(Pat_PDG_DTC_A, Pat_PDG_DTC_B,
+                      Pat_PDG_DTC_C, Pat_PDG_DTC_D)) / 4) / N_subj_pat
 
 # Healthy beads
-DTC_A <- apply(Healthy_beads_A[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_A <- ifelse(DTC_A==Inf, 5, DTC_A)
-DTC_B <- apply(Healthy_beads_B[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
-DTC_C <- apply(Healthy_beads_C[,c(1:5)], 1, function(x) min(which(x==0)))
-DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
-DTC_D <- apply(Healthy_beads_D[,c(1:5)], 1, function(x) min(which(x==0)))
-DTC_D <- ifelse(DTC_D==Inf, 5, DTC_D)
+Healthy_beads_DTC_A <- apply(Healthy_beads_A[,c(1:5)], 1, function(x) min(which(x==1)))
+Healthy_beads_DTC_A <- ifelse(Healthy_beads_DTC_A==Inf, 5, Healthy_beads_DTC_A)
+Healthy_beads_DTC_B <- apply(Healthy_beads_B[,c(1:5)], 1, function(x) min(which(x==1)))
+Healthy_beads_DTC_B <- ifelse(Healthy_beads_DTC_B==Inf, 5, Healthy_beads_DTC_B)
+Healthy_beads_DTC_C <- apply(Healthy_beads_C[,c(1:5)], 1, function(x) min(which(x==0)))
+Healthy_beads_DTC_C <- ifelse(Healthy_beads_DTC_C==Inf, 5, Healthy_beads_DTC_C)
+Healthy_beads_DTC_D <- apply(Healthy_beads_D[,c(1:5)], 1, function(x) min(which(x==0)))
+Healthy_beads_DTC_D <- ifelse(Healthy_beads_DTC_D==Inf, 5, Healthy_beads_DTC_D)
 
-DTC_healthy_beads <- (sum(c(DTC_A, DTC_B, DTC_C, DTC_D)) / 4) / N_subj_healthy
+DTC_healthy_beads <- (sum(c(Healthy_beads_DTC_A, Healthy_beads_DTC_B,
+                            Healthy_beads_DTC_C, Healthy_beads_DTC_D)) / 4) / N_subj_healthy
 
 # Patient beads
-DTC_A <- apply(Patient_beads_A[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_A <- ifelse(DTC_A==Inf, 5, DTC_A)
-DTC_B <- apply(Patient_beads_B[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
-DTC_C <- apply(Patient_beads_C[,c(1:5)], 1, function(x) min(which(x==0)))
-DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
-DTC_D <- apply(Patient_beads_D[,c(1:5)], 1, function(x) min(which(x==0)))
-DTC_D <- ifelse(DTC_D==Inf, 5, DTC_D)
+Pat_beads_DTC_A <- apply(Patient_beads_A[,c(1:5)], 1, function(x) min(which(x==1)))
+Pat_beads_DTC_A <- ifelse(Pat_beads_DTC_A==Inf, 5, Pat_beads_DTC_A)
+Pat_beads_DTC_B <- apply(Patient_beads_B[,c(1:5)], 1, function(x) min(which(x==1)))
+Pat_beads_DTC_B <- ifelse(Pat_beads_DTC_B==Inf, 5, Pat_beads_DTC_B)
+Pat_beads_DTC_C <- apply(Patient_beads_C[,c(1:5)], 1, function(x) min(which(x==0)))
+Pat_beads_DTC_C <- ifelse(Pat_beads_DTC_C==Inf, 5, Pat_beads_DTC_C)
+Pat_beads_DTC_D <- apply(Patient_beads_D[,c(1:5)], 1, function(x) min(which(x==0)))
+Pat_beads_DTC_D <- ifelse(Pat_beads_DTC_D==Inf, 5, Pat_beads_DTC_D)
 
-DTC_pat_beads <- (sum(c(DTC_A, DTC_B, DTC_C, DTC_D)) / 4) / N_subj_pat
+DTC_pat_beads <- (sum(c(Pat_beads_DTC_A, Pat_beads_DTC_B,
+                        Pat_beads_DTC_C, Pat_beads_DTC_D)) / 4) / N_subj_pat
 
 DTC <- signif(c(DTC_healthy_PDG, DTC_pat_PDG, DTC_healthy_beads, DTC_pat_beads), digits=3)
 
 htmlTable(DTC, cgroup=Tasks, n.cgroup= rep(2, N_tasks), header=rep(Groups, 2), 
           align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
-          caption = "Average draws to certainty over first half of seqs A:D")
+          caption = "Average draws to certainty over first half of all sequences")
 
-#-----------------------------------------------------------------------------------------------
-# b) 2nd half DTC - no. of choices until subjects reach maximum certainty after the change 
-# of jar/trustworthiness in sequences B and C only
-#-----------------------------------------------------------------------------------------------
+# Plot:
+# PDG
+DTC_healthy_PDG_all <- c(Healthy_PDG_DTC_A, Healthy_PDG_DTC_B, Healthy_PDG_DTC_C, Healthy_PDG_DTC_D)
+DTC_pat_PDG_all <- c(Pat_PDG_DTC_A, Pat_PDG_DTC_B, Pat_PDG_DTC_C, Pat_PDG_DTC_D)
+
+DTC_healthy_PDG_all_table <- data.frame((table(DTC_healthy_PDG_all)/N_subj_healthy)/4)
+DTC_pat_PDG_all_table <- data.frame((table(DTC_pat_PDG_all)/N_subj_pat)/4)
+
+colnames(DTC_healthy_PDG_all_table) <- c("Draw", "Freq")
+colnames(DTC_pat_PDG_all_table) <- c("Draw", "Freq")
+
+Number_DTC_PDG <- ggplot(NULL, aes(Draw, Freq))+
+  theme_grey()+
+  stat_summary_bin(aes(fill = "Healthy"),
+                   data=DTC_healthy_PDG_all_table,
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  stat_summary_bin(aes(fill= "Patient"), 
+                   data=DTC_pat_PDG_all_table, 
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
+  ggtitle("Proportion of subjects reaching DTC by trial number, all seqs, PDG")+
+  scale_y_continuous(limits=c(0, 1))
+Number_DTC_PDG
+
+# Beads 
+DTC_healthy_beads_all <- c(Healthy_beads_DTC_A, Healthy_beads_DTC_B, Healthy_beads_DTC_C, Healthy_beads_DTC_D)
+DTC_pat_beads_all <- c(Pat_beads_DTC_A, Pat_beads_DTC_B, Pat_beads_DTC_C, Pat_beads_DTC_D)
+
+DTC_healthy_beads_all_table <- data.frame((table(DTC_healthy_beads_all)/N_subj_healthy)/4)
+DTC_pat_beads_all_table <- data.frame((table(DTC_pat_beads_all)/N_subj_pat)/4)
+
+colnames(DTC_healthy_beads_all_table) <- c("Draw", "Freq")
+colnames(DTC_pat_beads_all_table) <- c("Draw", "Freq")
+
+Number_DTC_beads <- ggplot(NULL, aes(Draw, Freq))+
+  theme_grey()+
+  stat_summary_bin(aes(fill = "Healthy"),
+                   data=DTC_healthy_beads_all_table,
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  stat_summary_bin(aes(fill= "Patient"), 
+                   data=DTC_pat_beads_all_table, 
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
+  ggtitle("Proportion of subjects reaching DTC by trial number, beads")+
+  scale_y_continuous(limits=c(0, 1))
+Number_DTC_beads
+
+```
+
+
+<!--##### How many subjects (as a proportion of total group numbers) make a DTC at which indeces?-->
+
+```{r echo=F, warning=FALSE, message=FALSE}
+
+# Get_how_many_DTC()
+
+# # Plots of how many subj DTC
+# DTC_PDG <- ggplot(NULL, aes(Draws, Proportion_subjects))+
+#   theme_grey()+
+#   stat_summary_bin(aes(fill = "Healthy"),
+#                    data=How_many_DTC_healthy_PDG,
+#                    fun.y="sum", geom = "bar", alpha=.5)+
+#   stat_summary_bin(aes(fill= "Patient"), 
+#                    data=How_many_DTC_pat_PDG, 
+#                    fun.y="sum", geom = "bar", alpha=.5)+
+#   theme(legend.position="bottom")+
+#   ggtitle("PDG")+
+#   scale_y_continuous(limits=c(0, 0.15))
+#   
+# 
+# DTC_beads <- ggplot(NULL, aes(Draws, Proportion_subjects))+
+#   stat_summary_bin(aes(fill = "Healthy"),
+#                    data=How_many_DTC_healthy_beads,
+#                    fun.y="sum", geom = "bar", alpha=.5)+
+#   stat_summary_bin(aes(fill= "Patient"), 
+#                    data=How_many_DTC_pat_beads, 
+#                    fun.y="sum", geom = "bar", alpha=.5)+
+#   ggtitle("Beads")+
+#   scale_y_continuous(limits=c(0, 0.15))+
+#   theme_grey()+
+#   theme(legend.position="none")
+# 
+# Legend <- g_legend(DTC_PDG)
+# grid.arrange(DTC_PDG+theme(legend.position="none"), DTC_beads, Legend, ncol=2, nrow=2, 
+#              layout_matrix=rbind(c(1, 2), c(3, 3)), 
+#              top="Proportion of subjects making DTC, averaged across all four beads tasks",
+#              widths=c(2.7, 2.7), heights=c(2.5, 0.2))
+
+
+```
+
+
+**-------------------------------------------------------------------------------------------------**
+
+2. Second half DTC - How many trials until subjects reach maximum certainty after the change 
+of jar/trustworthiness in Seq B and Seq C only.
+
+```{r echo=F, warning=FALSE, message=FALSE}
+
 # Get second half indeces of seqs B & C, PDG & beads
 Index_PDG_B <- 16:20
 Index_PDG_C <- 26:30
@@ -528,36 +542,37 @@ Patient_beads_C <- Patient_beads[Index_beads_C]
 # Count how many draws to certainty, 2nd half BC
 
 # Healthy PDG BC
-DTC_B <- apply(Healthy_PDG_B, 1, function(x) min(which(x==1)))
-DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
-DTC_C <- apply(Healthy_PDG_C[,c(1:5)], 1, function(x) min(which(x==1)))
-DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
+SH_H_DTC_B <- apply(Healthy_PDG_B, 1, function(x) min(which(x==1)))
+SH_H_DTC_B <- ifelse(SH_H_DTC_B==Inf, 5, SH_H_DTC_B)
+SH_H_DTC_C <- apply(Healthy_PDG_C[,c(1:5)], 1, function(x) min(which(x==1)))
+SH_H_DTC_C <- ifelse(SH_H_DTC_C==Inf, 5, SH_H_DTC_C)
 
-DTC_healthy_PDG_BC <- (sum(c(DTC_B, DTC_C)) / 2) / N_subj_healthy
+DTC_healthy_PDG_BC <- (sum(c(SH_H_DTC_B, SH_H_DTC_C)) / 2) / N_subj_healthy
 
 # Patient PGD BC
-DTC_B <- apply(Patient_PDG_B, 1, function(x) min(which(x==1)))
-DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
-DTC_C <- apply(Patient_PDG_C, 1, function(x) min(which(x==1)))
-DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
 
-DTC_patient_PDG_BC <- (sum(c(DTC_B, DTC_C)) / 2) / N_subj_pat
+SH_Pat_DTC_B <- apply(Patient_PDG_B, 1, function(x) min(which(x==1)))
+SH_Pat_DTC_B <- ifelse(SH_Pat_DTC_B==Inf, 5, SH_Pat_DTC_B)
+SH_Pat_DTC_C <- apply(Patient_PDG_C, 1, function(x) min(which(x==1)))
+SH_Pat_DTC_C <- ifelse(SH_Pat_DTC_C==Inf, 5, SH_Pat_DTC_C)
+
+DTC_patient_PDG_BC <- (sum(c(SH_Pat_DTC_B, SH_Pat_DTC_C)) / 2) / N_subj_pat
 
 # Healthy beads BC
-DTC_B <- apply(Healthy_beads_B, 1, function(x) min(which(x==1)))
-DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
-DTC_C <- apply(Healthy_beads_C, 1, function(x) min(which(x==1)))
-DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
+SH_H_B_DTC_B <- apply(Healthy_beads_B, 1, function(x) min(which(x==1)))
+SH_H_B_DTC_B <- ifelse(SH_H_B_DTC_B==Inf, 5, SH_H_B_DTC_B)
+SH_H_B_DTC_C <- apply(Healthy_beads_C, 1, function(x) min(which(x==1)))
+SH_H_B_DTC_C <- ifelse(SH_H_B_DTC_C==Inf, 5, SH_H_B_DTC_C)
 
-DTC_healthy_beads_BC <- (sum(c(DTC_B, DTC_C)) / 2) / N_subj_healthy
+DTC_healthy_beads_BC <- (sum(c(SH_H_B_DTC_B, SH_H_B_DTC_C)) / 2) / N_subj_healthy
 
 # Patient beads BC
-DTC_B <- apply(Patient_beads_B, 1, function(x) min(which(x==1)))
-DTC_B <- ifelse(DTC_B==Inf, 5, DTC_B)
-DTC_C <- apply(Patient_beads_C, 1, function(x) min(which(x==1)))
-DTC_C <- ifelse(DTC_C==Inf, 5, DTC_C)
+SH_pat_B_DTC_B <- apply(Patient_beads_B, 1, function(x) min(which(x==1)))
+SH_pat_B_DTC_B <- ifelse(SH_pat_B_DTC_B==Inf, 5, SH_pat_B_DTC_B)
+SH_pat_B_DTC_C <- apply(Patient_beads_C, 1, function(x) min(which(x==1)))
+SH_pat_B_DTC_C <- ifelse(SH_pat_B_DTC_C==Inf, 5, SH_pat_B_DTC_C)
 
-DTC_patient_beads_BC <- (sum(c(DTC_B, DTC_C)) / 2) / N_subj_pat
+DTC_patient_beads_BC <- (sum(c(SH_pat_B_DTC_B, SH_pat_B_DTC_C)) / 2) / N_subj_pat
 
 DTC_BC <- signif(c(DTC_healthy_PDG_BC, 
                    DTC_patient_PDG_BC, 
@@ -568,14 +583,68 @@ htmlTable(DTC_BC, cgroup=Tasks, n.cgroup= rep(2, N_tasks), header=rep(Groups, 2)
           align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
           caption = "Average draws to certainty over second half of seqs B & C")
 
+# Plot:
+# PDG
+SH_DTC_healthy_PDG_all <- c(SH_H_DTC_B, SH_H_DTC_C)
+SH_DTC_pat_PDG_all <- c(SH_Pat_DTC_B, SH_Pat_DTC_C)
+
+SH_DTC_healthy_PDG_all_table <- data.frame((table(SH_DTC_healthy_PDG_all)/N_subj_healthy)/2)
+SH_DTC_pat_PDG_all_table <- data.frame((table(SH_DTC_pat_PDG_all)/N_subj_pat)/2)
+
+colnames(SH_DTC_healthy_PDG_all_table) <- c("Draw", "Freq")
+colnames(SH_DTC_pat_PDG_all_table) <- c("Draw", "Freq")
+
+SH_Number_DTC_PDG <- ggplot(NULL, aes(Draw, Freq))+
+  theme_grey()+
+  stat_summary_bin(aes(fill = "Healthy"),
+                   data=SH_DTC_healthy_PDG_all_table,
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  stat_summary_bin(aes(fill= "Patient"), 
+                   data=SH_DTC_pat_PDG_all_table, 
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
+  ggtitle("Proportion of subjects reaching DTC in second half of seqs B & C, PDG")+
+  scale_y_continuous(limits=c(0, 1))
+SH_Number_DTC_PDG
+
+# Beads
+SH_DTC_healthy_beads_all <- c(SH_H_B_DTC_B, SH_H_B_DTC_C)
+SH_DTC_pat_beads_all <- c(SH_pat_B_DTC_B, SH_pat_B_DTC_C)
+
+SH_DTC_healthy_beads_all_table <- data.frame((table(SH_DTC_healthy_beads_all)/N_subj_healthy)/2)
+SH_DTC_pat_beads_all_table <- data.frame((table(SH_DTC_pat_beads_all)/N_subj_pat)/2)
+
+colnames(SH_DTC_healthy_beads_all_table) <- c("Draw", "Freq")
+colnames(SH_DTC_pat_beads_all_table) <- c("Draw", "Freq")
+
+SH_Number_DTC_beads <- ggplot(NULL, aes(Draw, Freq))+
+  theme_grey()+
+  stat_summary_bin(aes(fill = "Healthy"),
+                   data=SH_DTC_healthy_beads_all_table,
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  stat_summary_bin(aes(fill= "Patient"), 
+                   data=SH_DTC_pat_beads_all_table, 
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
+  ggtitle("Proportion of subjects reaching DTC in second half of seqs B & C, PDG")+
+  scale_y_continuous(limits=c(0, 1))
+SH_Number_DTC_beads
 
 
-#-----------------------------------------------------------------------------------------------
-# c) initial decision to cooperate/compete in the PDG (I don’t know if James has supplied 
-# this data - NB I’m talking about the initial decision, not the initial trustworthiness 
-# rating which comes after seeing what the opponent did)
-# (1=compete, 2=cooperate)
-#-----------------------------------------------------------------------------------------------
+```
+
+**-------------------------------------------------------------------------------------------------**
+
+3. The initial decision whether to cooperate/compete in the PDG in all four sequences.
+
+```{r echo=F, warning=FALSE, message=FALSE}
+
+# set WD
+tryCatch({
+  setwd("U:/Gilleen_data")
+}, error=function(e) {
+  setwd("~/Dropbox/Gilleen_Analysis/For Gary")
+})
 
 Healthy_PDG_act <- read.csv("Gilleen_healthy_PGD_action.csv", header=TRUE)
 Pat_PDG_act <- read.csv("Gilleen_patient_PDG_action.csv", header=TRUE)
@@ -613,16 +682,16 @@ SE_pat_compete <- SE_prop(Pat_prop_compete, N_subj_pat)
 SE_pat_cooperate <- SE_prop(Pat_prop_cooperate, N_subj_pat)
 
 SE_action <- c(SE_healthy_compete, SE_healthy_cooperate, SE_pat_compete, SE_pat_cooperate)
-Limits <- aes()
+# Limits <- aes()
 
 # Put proportions into dataframe & htmlTable
 Action_table <- signif(c(Healthy_prop_compete, Healthy_prop_cooperate, 
                          Pat_prop_compete, Pat_prop_cooperate), digits=3)
 
-Action_table <- rbind(c(sum(Healthy_actions==1), sum(Healthy_actions==2), 
+Action_table_total <- rbind(c(sum(Healthy_actions==1), sum(Healthy_actions==2), 
                         sum(Pat_actions==1), sum(Pat_actions==2)), Action_table)
 
-htmlTable(Action_table, cgroup=Groups, n.cgroup= rep(2, N_tasks), header=rep(Action, 2), 
+htmlTable(Action_table_total, cgroup=Groups, n.cgroup= rep(2, N_tasks), header=rep(Action, 2), 
           align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
           rnames=c("Total", "Proportion"),
           caption = "Proportion of subjects' initial decisions in PDG, 
@@ -634,7 +703,7 @@ Group_action <- c("Healthy_compete", "Healthy_cooperate", "Patient_compete", "Pa
 
 Action_df <- data.frame(Groups, Group_action, Action_table)
 
-ggplot(Action_df, aes(x=Group_action, y=Action_table, fill=Groups))+
+Initial_plot <- ggplot(Action_df, aes(x=Group_action, y=Action_table, fill=Groups))+
   geom_bar(stat="identity") +
   scale_fill_discrete(name="Group", 
                       breaks=c(1, 2), 
@@ -642,6 +711,7 @@ ggplot(Action_df, aes(x=Group_action, y=Action_table, fill=Groups))+
   xlab("Group & action")+ylab("Proportion of subjects")+
   geom_errorbar(aes(ymin=Action_table-SE_action, ymax=Action_table+SE_action), width=0.25)+
   theme_gray()
+Initial_plot
 
 # Stats
 # Question: Do healthy differ from groups in the number of compete moves?
@@ -659,13 +729,14 @@ htmlTable(Test_table, header=c("Chi-sq", "d.f.", "p"),
           align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
           caption = txtMergeLines("Chi-sq test of proportions for initial action on PDG"))
 
-#-----------------------------------------------------------------------------------------------
-# d) are the group average trust ratings on each decision point the same in sequences
-# B and C? i.e. do we find the effect James found in the dissertation (Figure 5), that 
-# Scz subjects have lower trust ratings in the ‘bad opponent’ condition but not the 
-# ‘good opponent' condition?
-#-----------------------------------------------------------------------------------------------
 
+```
+
+**-------------------------------------------------------------------------------------------------**
+
+4. The average trust ratings on each trial the same in Seq A and Seq D ('mostly cooperate', 'mostly compete', respectively).
+
+```{r echo=F, warning=FALSE, message=FALSE}
 
 Index_A <- 1:10  # Mostly 1 - cooperate?
 Index_D <- 31:40 # Mostly 0 - compete?
@@ -730,32 +801,7 @@ htmlTable(txtRound(Test_D_table, 3),
           rnames=c("t", "df", "p"),
           caption = txtMergeLines("t-tests on healthy vs patient for each draw, seq A"))
 
-
-
-# 
-# While the mean and standard deviation are descriptive statistics, 
-# the mean and standard error describes bounds for a random sampling process.
-# This difference changes the meaning of what is being reported: a description of variation 
-# in measurements vs a statement of uncertainty around the estimate of the mean.
-# In other words standard error shows how close your sample mean is to the population mean.
-# Standard deviation shows how much individuals within the same sample differ 
-# from the sample mean. This also means that standard error should decrease if the 
-# sample size increases, as the estimate of the population mean improves. 
-# Standard deviation will not be affected by sample size.
-# 
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 
