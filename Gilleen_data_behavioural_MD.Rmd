@@ -515,8 +515,7 @@ Number_DTC_beads
 
 **-------------------------------------------------------------------------------------------------**
 
-#### 2. Second half DTC - How many trials until subjects reach maximum certainty after the change 
-of jar/trustworthiness in Seq B and Seq C only.
+#### 2. Second half DTC - How many trials until subjects reach maximum certainty after the change of jar/trustworthiness in Seq B and Seq C only.
 
 ```{r echo=F, warning=FALSE, message=FALSE}
 
