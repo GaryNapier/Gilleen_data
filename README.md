@@ -1,2 +1,2 @@
 # Gilleen_data
-Gilleen data behavioural nd computational analyses
+Gilleen data behavioural and computational analyses
