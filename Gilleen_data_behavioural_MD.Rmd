@@ -14,11 +14,22 @@ source("https://raw.githubusercontent.com/GaryNapier/Packages_functions/master/P
 
 # GILLEEN DATA BEHAVIOURAL
 
+# James original email - 15 June 
+
+# Attached is the complete PDG and Beads data for the Healthy and Patients. There are 3 tabs, the PDG action for each round (1=compete, 2=cooperate); PDG trust (the rating of trust after each round (1=totally untrustworthy, 7 totally trustworthy, 4 unsure [i.e. 0 = totally untrustworthy, 1 = totally trustworthy, 0.5 = unsure])
+# and Beads (1= definitely Jar A, 7=definitely Jar B; 4 unsure [i.e. 0 = definitely Jar A, 1 = definitely Jar B, 0.5 = unsure]). I hope this is clear.
+# 
+# As a reminder, for the PDG, A=mostly cooperative, D=mostly competitive, B=first half mostly cooperative switching to second half mostly competitive, and C vice versa). 
+
+#####
+
 # There are 3 datasets:
 #   - PDG action for each round (1=compete, 2=cooperate); 
 #   - PDG trust (the rating of trust after each round (1=totally untrustworthy, 
-#     7 totally trustworthy, 4 unsure) and
-#   - Beads (1= definitely Jar A, 7=definitely Jar B; 4 unsure). 
+#     7 totally trustworthy, 4 unsure [i.e. 0 = totally untrustworthy, 1 = totally trustworthy, 
+#     0.5 = unsure]) and
+#   - Beads (1= definitely Jar A, 7=definitely Jar B; 4 unsure [i.e. 0 = definitely Jar A, 
+#     1 = definitely Jar B, 0.5 = unsure]). 
 #                                                                                                                                                                
 # For the PDG, A=mostly cooperative, D=mostly competitive, B=first half mostly 
 # cooperative switching to second half mostly competitive, and C vice versa). 
@@ -182,18 +193,19 @@ Plot_PDG <- function(){
     geom_line(data=Patient_PDG_sum, aes(x=Sequence, y=Data), colour = "blue", size = 1, alpha=.7)+
     geom_point(data=data.frame(Seq_PDG),
                aes(x=1:length(Seq_PDG), y=Seq_PDG, colour=factor(Seq_PDG)),
-               size=3, show.legend = FALSE) +
-    geom_point()+
-    geom_point()+
+               size=3, show.legend = FALSE)+
     scale_x_discrete(labels = Seq_PDG)+
-    ylim(0, 1)+
+    expand_limits(x = c(1, length(Seq_PDG)+3))+
+    scale_y_continuous(breaks = seq(0,1,0.1), limits = c(-0.1, 1.1))+
     geom_vline(xintercept = c(10.5, 20.5, 30.5), linetype = "longdash")+
     geom_hline(yintercept = Values, alpha=Alpha_line)+
     annotate("text", x = c(5, 15, 25, 35), y=0.1, label = c("A", "B", "C", "D"), fontface = "bold")+
+    annotate("text", x = length(Seq_PDG)/2, y=c(-0.1, 1.1), label=c("Compete", "Cooperate"))+
+    annotate("text", x=length(Seq_PDG)+1, y=Values, label=as.character(1:7), size=3 )+
+    annotate("text", x = length(Seq_PDG)+2, y=0.5, label="Original scale", angle=270)+
     ggtitle("Mean PDG data, healthy (red) & patient (blue)")+
     theme_grey()
 }
-
 Plot_PDG()
 
 #
@@ -208,13 +220,15 @@ Plot_beads <- function() {
     geom_point(data=data.frame(Seq_beads),
                aes(x=1:length(Seq_beads), y=Seq_beads, colour=factor(Seq_beads)),
                size=3, show.legend = FALSE) +
-    geom_point()+
-    geom_point()+
     scale_x_discrete(labels = Seq_beads)+
-    ylim(0, 1)+
+    expand_limits(x = c(1, length(Seq_PDG)+3))+
+    scale_y_continuous(breaks = seq(0,1,0.1), limits = c(-0.1, 1.1))+
     geom_vline(xintercept = c(10.5, 20.5, 30.5), linetype = "longdash")+
     geom_hline(yintercept = Values, alpha=Alpha_line)+
     annotate("text", x = c(5, 15, 25, 35), y=0.1, label = c("D", "C", "B", "A"), fontface = "bold")+
+    annotate("text", x = length(Seq_PDG)/2, y=c(-0.1, 1.1), label=c("Jar A", "Jar B"))+
+    annotate("text", x=length(Seq_PDG)+1, y=Values, label=as.character(1:7), size=3 )+
+    annotate("text", x = length(Seq_PDG)+2, y=0.5, label="Original scale", angle=270)+
     ggtitle("Mean beads data, healthy (red) & patient (blue)")+
     theme_grey()
 }
@@ -647,7 +661,7 @@ tryCatch({
   setwd("~/Dropbox/Gilleen_Analysis/For Gary")
 })
 
-Healthy_PDG_act <- read.csv("Gilleen_healthy_PGD_action.csv", header=TRUE)
+Healthy_PDG_act <- read.csv("Gilleen_healthy_PDG_action.csv", header=TRUE)
 Pat_PDG_act <- read.csv("Gilleen_patient_PDG_action.csv", header=TRUE)
 
 # Drop ID and save
@@ -771,14 +785,16 @@ Plot_PDG_AD <- function(){
                aes(x=1:length(Seq_PDG[c(Index_A, Index_D)]),
                    y=Seq_PDG[c(Index_A, Index_D)], colour=factor(Seq_PDG[c(Index_A, Index_D)])),
                size=5, show.legend = FALSE) +
-    geom_point()+
-    geom_point()+
     scale_x_discrete(labels = Seq_PDG[c(Index_A, Index_D)])+
-    ylim(0, 1)+
+    expand_limits(x = c(1, (length(Seq_PDG)/2)+3))+
+    scale_y_continuous(breaks = seq(0,1,0.1), limits = c(-0.1, 1.1))+
     geom_vline(xintercept = c(10.5), linetype = "longdash")+
     geom_hline(yintercept = Values, alpha=Alpha_line)+
     annotate("text", x = c(5, 15), y=0.1, label = c("A", "D"), fontface = "bold")+
     annotate("text", x = Sig, y = 0.8, label="*", fontface="bold", size=8)+
+    annotate("text", x = (length(Seq_PDG)/2)/2, y=c(-0.1, 1.1), label=c("Compete", "Cooperate"))+
+    annotate("text", x=(length(Seq_PDG)/2)+1, y=Values, label=as.character(1:7), size=3 )+
+    annotate("text", x = (length(Seq_PDG)/2)+2, y=0.5, label="Original scale", angle=270)+
     ggtitle("Mean PDG data, healthy (red) & patient (blue). * = significant")+
     theme_grey()
 }
