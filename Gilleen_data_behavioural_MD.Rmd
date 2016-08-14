@@ -207,6 +207,7 @@ Plot_PDG <- function(){
     ggtitle("Mean PDG data, healthy (red) & patient (blue).\n0 = totally untrustworthy, 1 = totally trustworthy")+
     theme_grey()
 }
+
 Plot_PDG()
 #
 
