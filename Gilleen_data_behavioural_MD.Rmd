@@ -118,6 +118,28 @@ Seq_D <-  c(0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 Seq_PDG <- c(Seq_A, Seq_B, Seq_C, Seq_D)
 Seq_beads <- c(Seq_D, Seq_C, Seq_B, Seq_A)
 
+# Indices 
+A_PDG_ind <- 1:10
+B_PDG_ind <- 11:20
+B_FH_PDG_ind <- 11:15
+B_SH_PDG_ind <- 16:20
+C_PDG_ind <- 21:30
+C_FH_PDG_ind <- 21:25
+C_SH_PDG_ind <- 26:30
+D_PDG_ind <- 31:40
+
+A_beads_ind <- D_PDG_ind
+B_beads_ind <- C_PDG_ind
+B_FH_beads_ind <- C_FH_PDG_ind
+B_SH_beads_ind <- C_SH_PDG_ind
+C_beads_ind <- B_PDG_ind
+C_FH_beads_ind <- B_FH_PDG_ind
+C_SH_beads_ind <- B_SH_PDG_ind
+D_beads_ind <- A_PDG_ind
+
+Seq_names <- c("A", "B first half", "B second half", "C first half", "C second half", "D")
+
+
 #---------------------------------------------------------------------------------------
 # Get stats
 #---------------------------------------------------------------------------------------
@@ -294,7 +316,7 @@ Plot_beads()
 
 **-------------------------------------------------------------------------------------------------**
 
-#### 1. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (1 or 0) in the first half of either task.
+#### 1a. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (0 or 1; 1 or 7 in original Likert scale) in the first half of both tasks.
 
 ##### NB - if subjects took more than 5 trials to certainty, this was counted as '5', so there were **at least** 5 trials to certainty. 
 
@@ -377,7 +399,7 @@ How_many_DTC_pat_beads <- data.frame(Draws=Draws,
                                                               How_many_DTC_pat_beads_D) / N_subj_pat ))
 
 
-# SETUP NO OF TRIALS
+# SETUP NO OF TRIALS TO 0/1 / 1/7
 
 # Healthy PDG
 Healthy_PDG_DTC_A <- apply(Healthy_PDG_A[,c(1:5)], 1, function(x) min(which(x==1)))
@@ -483,6 +505,211 @@ Number_DTC_beads <- ggplot(NULL, aes(Draw, Freq))+
   ggtitle("Proportion of subjects reaching DTC by trial number, beads")+
   scale_y_continuous(limits=c(0, 1))
 Number_DTC_beads
+
+#---------------------------------------------------------------------------------------------
+# Group stats on the final certainty scores in each sequence?
+#---------------------------------------------------------------------------------------------
+
+# Get final cert scores
+
+# PDG
+Healthy_PDG_A_cert <- apply(Healthy_PDG[A_PDG_ind], 1, max)
+# Healthy_PDG_B_cert <- apply(Healthy_PDG[B_PDG_ind], 1, min)
+Healthy_PDG_B_FH_cert <- apply(Healthy_PDG[B_FH_PDG_ind], 1, max)
+Healthy_PDG_B_SH_cert <- apply(Healthy_PDG[B_SH_PDG_ind], 1, min)
+# Healthy_PDG_C_cert <- apply(Healthy_PDG[C_PDG_ind], 1, max)
+Healthy_PDG_C_FH_cert <- apply(Healthy_PDG[C_FH_PDG_ind], 1, min)
+Healthy_PDG_C_SH_cert <- apply(Healthy_PDG[C_SH_PDG_ind], 1, max)
+Healthy_PDG_D_cert <- apply(Healthy_PDG[D_PDG_ind], 1, min)
+
+Pat_PDG_A_cert <- apply(Patient_PDG[A_PDG_ind], 1, max)
+# Pat_PDG_B_cert <- apply(Patient_PDG[B_PDG_ind], 1, min)
+Pat_PDG_B_FH_cert <- apply(Patient_PDG[B_FH_PDG_ind], 1, max)
+Pat_PDG_B_SH_cert <- apply(Patient_PDG[B_SH_PDG_ind], 1, min)
+# Pat_PDG_C_cert <- apply(Patient_PDG[C_PDG_ind], 1, max)
+Pat_PDG_C_FH_cert <- apply(Patient_PDG[C_FH_PDG_ind], 1, min)
+Pat_PDG_C_SH_cert <- apply(Patient_PDG[C_SH_PDG_ind], 1, max)
+Pat_PDG_D_cert <- apply(Patient_PDG[D_PDG_ind], 1, min)
+
+# Means
+Means <- c(mean(Healthy_PDG_A_cert), mean(Pat_PDG_A_cert), mean(Healthy_PDG_B_FH_cert), mean(Pat_PDG_B_FH_cert), mean(Healthy_PDG_B_SH_cert), mean(Pat_PDG_B_SH_cert), mean(Healthy_PDG_C_FH_cert), mean(Pat_PDG_C_FH_cert), mean(Healthy_PDG_C_SH_cert), mean(Pat_PDG_C_SH_cert), mean(Healthy_PDG_D_cert), mean(Pat_PDG_D_cert))
+dim(Means) <- c(2, 6)
+Means <- t(Means)
+colnames(Means) <- c("Healthy mean", "Pat mean")
+
+# Test PDG diffs in cert scores
+Test_cert_A <- t.test(Healthy_PDG_A_cert, Pat_PDG_A_cert)
+Test_cert_B_FH <- t.test(Healthy_PDG_B_FH_cert, Pat_PDG_B_FH_cert)
+Test_cert_B_SH <- t.test(Healthy_PDG_B_SH_cert, Pat_PDG_B_SH_cert)
+Test_cert_C_FH <- t.test(Healthy_PDG_C_FH_cert, Pat_PDG_C_FH_cert)
+Test_cert_C_SH <- t.test(Healthy_PDG_C_SH_cert, Pat_PDG_C_SH_cert)
+Test_cert_D <- t.test(Healthy_PDG_D_cert, Pat_PDG_D_cert)
+
+# Put together table
+Stats <- list(Test_cert_A, Test_cert_B_FH, Test_cert_B_SH, Test_cert_C_FH, Test_cert_C_SH, Test_cert_D)
+names(Stats) <- Seq_names
+Stats <- lapply(Stats, function(x) {c(x$statistic, x$parameter, x$p.value)})
+Stats <- data.frame(cbind(Means, do.call(rbind, Stats)))
+colnames(Stats)[5] <- "p"
+
+htmlTable(txtRound(Stats, 3), align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue),
+          caption = "Tests on healthy vs patient final certainty scores, PDG")
+
+
+
+
+
+
+
+
+
+# Beads
+Healthy_beads_A_cert <- apply(Healthy_beads[A_beads_ind], 1, max)
+# Healthy_beads_B_cert <- apply(Healthy_beads[B_beads_ind], 1, min)
+Healthy_beads_B_FH_cert <- apply(Healthy_beads[B_FH_beads_ind], 1, max)
+Healthy_beads_B_SH_cert <- apply(Healthy_beads[B_SH_beads_ind], 1, min)
+# Healthy_beads_C_cert <- apply(Healthy_beads[C_beads_ind], 1, max)
+Healthy_beads_C_FH_cert <- apply(Healthy_beads[C_FH_beads_ind], 1, min)
+Healthy_beads_C_SH_cert <- apply(Healthy_beads[C_SH_beads_ind], 1, max)
+Healthy_beads_D_cert <- apply(Healthy_beads[D_beads_ind], 1, min)
+
+Pat_beads_A_cert <- apply(Patient_beads[A_beads_ind], 1, max)
+# Pat_beads_B_cert <- apply(Patient_beads[B_beads_ind], 1, min)
+Pat_beads_B_FH_cert <- apply(Patient_beads[B_FH_beads_ind], 1, max)
+Pat_beads_B_SH_cert <- apply(Patient_beads[B_SH_beads_ind], 1, min)
+# Pat_beads_C_cert <- apply(Patient_beads[C_beads_ind], 1, max)
+Pat_beads_C_FH_cert <- apply(Patient_beads[C_FH_beads_ind], 1, min)
+Pat_beads_C_SH_cert <- apply(Patient_beads[C_SH_beads_ind], 1, max)
+Pat_beads_D_cert <- apply(Patient_beads[D_beads_ind], 1, min)
+
+# Test beads diffs in cert scores
+Test_cert_A <- t.test(Healthy_beads_A_cert, Pat_beads_A_cert)
+Test_cert_B_FH <- t.test(Healthy_beads_B_FH_cert, Pat_beads_B_FH_cert)
+Test_cert_B_SH <- t.test(Healthy_beads_B_SH_cert, Pat_beads_B_SH_cert)
+Test_cert_C_FH <- t.test(Healthy_beads_C_FH_cert, Pat_beads_C_FH_cert)
+Test_cert_C_SH <- t.test(Healthy_beads_C_SH_cert, Pat_beads_C_SH_cert)
+Test_cert_D <- t.test(Healthy_beads_D_cert, Pat_beads_D_cert)
+
+
+
+```
+
+#### 1b. First-half DTC using lower criteria for certainty - Likert scales 2 & 6 - in both tasks.
+
+##### NB - if subjects took more than 5 trials to certainty, this was counted as '5', so there were **at least** 5 trials to certainty. 
+
+```{r echo=F, warning=FALSE, message=FALSE}
+
+# SETUP NO OF TRIALS TO 0.167/0.833 / 2/6
+
+Two <- Values[2]
+Six <- Values[(length(Values)-1)]
+
+# Healthy PDG
+Healthy_PDG_DTC_A <- apply(Healthy_PDG_A[,c(1:5)], 1, function(x) min(which(x==Six)))
+Healthy_PDG_DTC_A <- ifelse(Healthy_PDG_DTC_A==Inf, 5, Healthy_PDG_DTC_A)
+Healthy_PDG_DTC_B <- apply(Healthy_PDG_B[,c(1:5)], 1, function(x) min(which(x==Six)))
+Healthy_PDG_DTC_B <- ifelse(Healthy_PDG_DTC_B==Inf, 5, Healthy_PDG_DTC_B)
+Healthy_PDG_DTC_C <- apply(Healthy_PDG_C[,c(1:5)], 1, function(x) min(which(x==Two)))
+Healthy_PDG_DTC_C <- ifelse(Healthy_PDG_DTC_C==Inf, 5, Healthy_PDG_DTC_C)
+Healthy_PDG_DTC_D <- apply(Healthy_PDG_D[,c(1:5)], 1, function(x) min(which(x==Two)))
+Healthy_PDG_DTC_D <- ifelse(Healthy_PDG_DTC_D==Inf, 5, Healthy_PDG_DTC_D)
+
+DTC_healthy_PDG <- (sum(c(Healthy_PDG_DTC_A, Healthy_PDG_DTC_B, 
+                          Healthy_PDG_DTC_C, Healthy_PDG_DTC_D)) / 4) / N_subj_healthy
+
+# Patient PDG
+Pat_PDG_DTC_A <- apply(Patient_PDG_A[,c(1:5)], 1, function(x) min(which(x==Six)))
+Pat_PDG_DTC_A <- ifelse(Pat_PDG_DTC_A==Inf, 5, Pat_PDG_DTC_A)
+Pat_PDG_DTC_B <- apply(Patient_PDG_B[,c(1:5)], 1, function(x) min(which(x==Six)))
+Pat_PDG_DTC_B <- ifelse(Pat_PDG_DTC_B==Inf, 5, Pat_PDG_DTC_B)
+Pat_PDG_DTC_C <- apply(Patient_PDG_C[,c(1:5)], 1, function(x) min(which(x==Two)))
+Pat_PDG_DTC_C <- ifelse(Pat_PDG_DTC_C==Inf, 5, Pat_PDG_DTC_C)
+Pat_PDG_DTC_D <- apply(Patient_PDG_D[,c(1:5)], 1, function(x) min(which(x==Two)))
+Pat_PDG_DTC_D <- ifelse(Pat_PDG_DTC_D==Inf, 5, Pat_PDG_DTC_D)
+
+DTC_pat_PDG <- (sum(c(Pat_PDG_DTC_A, Pat_PDG_DTC_B,
+                      Pat_PDG_DTC_C, Pat_PDG_DTC_D)) / 4) / N_subj_pat
+
+# Healthy beads
+Healthy_beads_DTC_A <- apply(Healthy_beads_A[,c(1:5)], 1, function(x) min(which(x==Six)))
+Healthy_beads_DTC_A <- ifelse(Healthy_beads_DTC_A==Inf, 5, Healthy_beads_DTC_A)
+Healthy_beads_DTC_B <- apply(Healthy_beads_B[,c(1:5)], 1, function(x) min(which(x==Six)))
+Healthy_beads_DTC_B <- ifelse(Healthy_beads_DTC_B==Inf, 5, Healthy_beads_DTC_B)
+Healthy_beads_DTC_C <- apply(Healthy_beads_C[,c(1:5)], 1, function(x) min(which(x==Two)))
+Healthy_beads_DTC_C <- ifelse(Healthy_beads_DTC_C==Inf, 5, Healthy_beads_DTC_C)
+Healthy_beads_DTC_D <- apply(Healthy_beads_D[,c(1:5)], 1, function(x) min(which(x==Two)))
+Healthy_beads_DTC_D <- ifelse(Healthy_beads_DTC_D==Inf, 5, Healthy_beads_DTC_D)
+
+DTC_healthy_beads <- (sum(c(Healthy_beads_DTC_A, Healthy_beads_DTC_B,
+                            Healthy_beads_DTC_C, Healthy_beads_DTC_D)) / 4) / N_subj_healthy
+
+# Patient beads
+Pat_beads_DTC_A <- apply(Patient_beads_A[,c(1:5)], 1, function(x) min(which(x==Six)))
+Pat_beads_DTC_A <- ifelse(Pat_beads_DTC_A==Inf, 5, Pat_beads_DTC_A)
+Pat_beads_DTC_B <- apply(Patient_beads_B[,c(1:5)], 1, function(x) min(which(x==Six)))
+Pat_beads_DTC_B <- ifelse(Pat_beads_DTC_B==Inf, 5, Pat_beads_DTC_B)
+Pat_beads_DTC_C <- apply(Patient_beads_C[,c(1:5)], 1, function(x) min(which(x==Two)))
+Pat_beads_DTC_C <- ifelse(Pat_beads_DTC_C==Inf, 5, Pat_beads_DTC_C)
+Pat_beads_DTC_D <- apply(Patient_beads_D[,c(1:5)], 1, function(x) min(which(x==Two)))
+Pat_beads_DTC_D <- ifelse(Pat_beads_DTC_D==Inf, 5, Pat_beads_DTC_D)
+
+DTC_pat_beads <- (sum(c(Pat_beads_DTC_A, Pat_beads_DTC_B,
+                        Pat_beads_DTC_C, Pat_beads_DTC_D)) / 4) / N_subj_pat
+
+DTC_lower <- signif(c(DTC_healthy_PDG, DTC_pat_PDG, DTC_healthy_beads, DTC_pat_beads), digits=3)
+
+htmlTable(DTC_lower, cgroup=Tasks, n.cgroup= rep(2, N_tasks), header=rep(Groups, 2), 
+          align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), 
+          caption = "Av draws to either 2 or 6 (Likert) over first half, all seqs")
+
+# Plot:
+# PDG
+DTC_healthy_PDG_all <- c(Healthy_PDG_DTC_A, Healthy_PDG_DTC_B, Healthy_PDG_DTC_C, Healthy_PDG_DTC_D)
+DTC_pat_PDG_all <- c(Pat_PDG_DTC_A, Pat_PDG_DTC_B, Pat_PDG_DTC_C, Pat_PDG_DTC_D)
+
+DTC_healthy_PDG_all_table <- data.frame((table(DTC_healthy_PDG_all)/N_subj_healthy)/4)
+DTC_pat_PDG_all_table <- data.frame((table(DTC_pat_PDG_all)/N_subj_pat)/4)
+
+colnames(DTC_healthy_PDG_all_table) <- c("Draw", "Freq")
+colnames(DTC_pat_PDG_all_table) <- c("Draw", "Freq")
+
+Number_DTC_PDG <- ggplot(NULL, aes(Draw, Freq))+
+  theme_grey()+
+  stat_summary_bin(aes(fill = "Healthy"),
+                   data=DTC_healthy_PDG_all_table,
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  stat_summary_bin(aes(fill= "Patient"), 
+                   data=DTC_pat_PDG_all_table, 
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
+  ggtitle("Proportion of subjects reaching 2 or 6 by trial number, all seqs, PDG")+
+  scale_y_continuous(limits=c(0, 1))
+Number_DTC_PDG
+
+# Beads 
+DTC_healthy_beads_all <- c(Healthy_beads_DTC_A, Healthy_beads_DTC_B, Healthy_beads_DTC_C, Healthy_beads_DTC_D)
+DTC_pat_beads_all <- c(Pat_beads_DTC_A, Pat_beads_DTC_B, Pat_beads_DTC_C, Pat_beads_DTC_D)
+
+DTC_healthy_beads_all_table <- data.frame((table(DTC_healthy_beads_all)/N_subj_healthy)/4)
+DTC_pat_beads_all_table <- data.frame((table(DTC_pat_beads_all)/N_subj_pat)/4)
+
+colnames(DTC_healthy_beads_all_table) <- c("Draw", "Freq")
+colnames(DTC_pat_beads_all_table) <- c("Draw", "Freq")
+
+Number_DTC_beads <- ggplot(NULL, aes(Draw, Freq))+
+  theme_grey()+
+  stat_summary_bin(aes(fill = "Healthy"),
+                   data=DTC_healthy_beads_all_table,
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  stat_summary_bin(aes(fill= "Patient"), 
+                   data=DTC_pat_beads_all_table, 
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
+  ggtitle("Proportion of subjects reaching 2 or 6 by trial number, all seqs, beads")+
+  scale_y_continuous(limits=c(0, 1))
+Number_DTC_beads
+
 
 ```
 
