@@ -259,7 +259,7 @@ for (j in seq(Predictions))
   
   
   
-<!--  CREATE parametric models - ANOVA -->
+<!--  CREATE parametric models - t-tests -->
 ```{r echo=FALSE, cache=F}
 #------------------------------------------------
 # CREATE parametric models - t-tests
