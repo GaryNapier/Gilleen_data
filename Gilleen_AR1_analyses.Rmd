@@ -257,8 +257,7 @@ for (j in seq(Predictions))
 ```
   
   
-  
-  
+
 <!--  CREATE parametric models - t-tests -->
 ```{r echo=FALSE, cache=F}
 #------------------------------------------------
