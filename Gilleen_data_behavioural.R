@@ -163,8 +163,6 @@ Plot_PDG <- function(){
 # x11()
 Plot_PDG()
 
-#
-
 # Plot beads
 Plot_beads <- function() {
   ggplot(Healthy_beads_sum, aes(x=Sequence, y=Data, group=1)) +
