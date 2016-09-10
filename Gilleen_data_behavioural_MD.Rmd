@@ -700,6 +700,7 @@ htmlTable(txtRound(Stats, 3), align = c("c", "|"), align.header=c("c", "|"), col
 
 **-------------------------------------------------------------------------------------------------**
 
+
 #### 1b. First-half DTC using lower criteria for certainty - Likert scales 2 & 6 - in both tasks.
 
 ##### NB - if subjects took more than 5 trials to certainty, this was counted as '5', so there were **at least** 5 trials to certainty. 
