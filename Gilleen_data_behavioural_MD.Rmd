@@ -60,6 +60,9 @@ Blue <- "#F1F0FA"
 
 Action <- c("Compete", "Cooperate")
 
+# Set the default theme
+theme_set(theme_grey())
+
 #---------------------------------------------------------------------------------------
 # Read in data
 #---------------------------------------------------------------------------------------
@@ -320,6 +323,7 @@ Plot_beads()
 
 ##### NB - if subjects took more than 5 trials to certainty, this was counted as '5', so there were **at least** 5 trials to certainty. 
 
+<!-- # How many subjects make a DTC at which indeces? - Get data -->
 ```{r echo=F, warning=FALSE, message=FALSE}
 
 # SETUP HOW MANY 
@@ -398,7 +402,10 @@ How_many_DTC_pat_beads <- data.frame(Draws=Draws,
                                                               How_many_DTC_pat_beads_C,
                                                               How_many_DTC_pat_beads_D) / N_subj_pat ))
 
+```
 
+<!-- SETUP NO OF TRIALS TO 0/1 / 1/7 -->
+```{r echo=F, warning=FALSE, message=FALSE}
 # SETUP NO OF TRIALS TO 0/1 / 1/7
 
 # Healthy PDG
@@ -505,14 +512,18 @@ Number_DTC_beads <- ggplot(NULL, aes(Draw, Freq))+
   ggtitle("Proportion of subjects reaching DTC by trial number, beads")+
   scale_y_continuous(limits=c(0, 1))
 Number_DTC_beads
+```
 
+##### Group statistics of final certainty ratings for each seq, PDG and beads
+<!-- Group stats on the final certainty scores in each sequence? -->
+```{r echo=F, warning=FALSE, message=FALSE}
 #---------------------------------------------------------------------------------------------
 # Group stats on the final certainty scores in each sequence?
 #---------------------------------------------------------------------------------------------
 
 # Get final cert scores
 
-# PDG
+# PDG - cert scores
 Healthy_PDG_A_cert <- apply(Healthy_PDG[A_PDG_ind], 1, max)
 # Healthy_PDG_B_cert <- apply(Healthy_PDG[B_PDG_ind], 1, min)
 Healthy_PDG_B_FH_cert <- apply(Healthy_PDG[B_FH_PDG_ind], 1, max)
@@ -552,18 +563,53 @@ Stats <- lapply(Stats, function(x) {c(x$statistic, x$parameter, x$p.value)})
 Stats <- data.frame(cbind(Means, do.call(rbind, Stats)))
 colnames(Stats)[5] <- "p"
 
+# Hists 
+# Re-arrange data for hists 
+All_he <- list(Healthy_PDG_A_cert, Healthy_PDG_B_FH_cert, Healthy_PDG_B_SH_cert, Healthy_PDG_C_FH_cert, Healthy_PDG_C_SH_cert, Healthy_PDG_D_cert)
+
+All_pat <- list(Pat_PDG_A_cert, Pat_PDG_B_FH_cert, Pat_PDG_B_SH_cert, Pat_PDG_C_FH_cert, Pat_PDG_C_SH_cert, Pat_PDG_D_cert)
+
+All_he <- lapply(All_he, function(x) x*6+1)
+All_pat <- lapply(All_pat, function(x) x*6+1)
+
+All_he <- lapply(All_he, function(x){data.frame(table(x)/N_subj_healthy)})
+All_pat <- lapply(All_pat, function(x){data.frame(table(x)/N_subj_pat)})
+
+Hists_cert_ratings_PDG <- list()
+for(i in seq(All_he)) {
+x <- ggplot(NULL, aes(x=x, y=Freq))+
+  stat_summary_bin(aes(fill = "Healthy"),
+                   data=All_he[[i]],
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  stat_summary_bin(aes(fill= "Patient"),
+                   data=All_pat[[i]],
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
+  theme_grey()+
+  ggtitle(sprintf("Seq %s", Seq_names[i]))+
+  xlab("Final certainty ratings")+
+  scale_y_continuous(limits=c(0, 1))
+Hists_cert_ratings_PDG[[i]] <- x
+}
+
+# Set the default theme
+theme_set(theme_grey())
+
+Legend <-  g_legend(Hists_cert_ratings_PDG[[1]])
+
+p1 <- Hists_cert_ratings_PDG[[1]]
+p2 <- Hists_cert_ratings_PDG[[2]]
+p3 <- Hists_cert_ratings_PDG[[3]]
+p4 <- Hists_cert_ratings_PDG[[4]]
+p5 <- Hists_cert_ratings_PDG[[5]]
+p6 <- Hists_cert_ratings_PDG[[6]]
+
+grid.arrange(p1+theme(legend.position="none"), p2+theme(legend.position="none"), p3+theme(legend.position="none"), p4+theme(legend.position="none"), p5+theme(legend.position="none"), p6+theme(legend.position="none"), top = "Proportion of final certainty ratings, PDG", Legend)
+
 htmlTable(txtRound(Stats, 3), align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue),
-          caption = "Tests on healthy vs patient final certainty scores, PDG")
+          caption = "Healthy vs patient final certainty scores, PDG")
 
-
-
-
-
-
-
-
-
-# Beads
+# beads cert scores
 Healthy_beads_A_cert <- apply(Healthy_beads[A_beads_ind], 1, max)
 # Healthy_beads_B_cert <- apply(Healthy_beads[B_beads_ind], 1, min)
 Healthy_beads_B_FH_cert <- apply(Healthy_beads[B_FH_beads_ind], 1, max)
@@ -582,6 +628,12 @@ Pat_beads_C_FH_cert <- apply(Patient_beads[C_FH_beads_ind], 1, min)
 Pat_beads_C_SH_cert <- apply(Patient_beads[C_SH_beads_ind], 1, max)
 Pat_beads_D_cert <- apply(Patient_beads[D_beads_ind], 1, min)
 
+# Means
+Means <- c(mean(Healthy_beads_A_cert), mean(Pat_beads_A_cert), mean(Healthy_beads_B_FH_cert), mean(Pat_beads_B_FH_cert), mean(Healthy_beads_B_SH_cert), mean(Pat_beads_B_SH_cert), mean(Healthy_beads_C_FH_cert), mean(Pat_beads_C_FH_cert), mean(Healthy_beads_C_SH_cert), mean(Pat_beads_C_SH_cert), mean(Healthy_beads_D_cert), mean(Pat_beads_D_cert))
+dim(Means) <- c(2, 6)
+Means <- t(Means)
+colnames(Means) <- c("Healthy mean", "Pat mean")
+
 # Test beads diffs in cert scores
 Test_cert_A <- t.test(Healthy_beads_A_cert, Pat_beads_A_cert)
 Test_cert_B_FH <- t.test(Healthy_beads_B_FH_cert, Pat_beads_B_FH_cert)
@@ -590,9 +642,63 @@ Test_cert_C_FH <- t.test(Healthy_beads_C_FH_cert, Pat_beads_C_FH_cert)
 Test_cert_C_SH <- t.test(Healthy_beads_C_SH_cert, Pat_beads_C_SH_cert)
 Test_cert_D <- t.test(Healthy_beads_D_cert, Pat_beads_D_cert)
 
+# Put together table
+Stats <- list(Test_cert_A, Test_cert_B_FH, Test_cert_B_SH, Test_cert_C_FH, Test_cert_C_SH, Test_cert_D)
+names(Stats) <- Seq_names
+Stats <- lapply(Stats, function(x) {c(x$statistic, x$parameter, x$p.value)})
+Stats <- data.frame(cbind(Means, do.call(rbind, Stats)))
+colnames(Stats)[5] <- "p"
 
+# Hists 
+# Re-arrange data for hists 
+All_he <- list(Healthy_beads_A_cert, Healthy_beads_B_FH_cert, Healthy_beads_B_SH_cert, Healthy_beads_C_FH_cert, Healthy_beads_C_SH_cert, Healthy_beads_D_cert)
+
+All_pat <- list(Pat_beads_A_cert, Pat_beads_B_FH_cert, Pat_beads_B_SH_cert, Pat_beads_C_FH_cert, Pat_beads_C_SH_cert, Pat_beads_D_cert)
+
+All_he <- lapply(All_he, function(x) x*6+1)
+All_pat <- lapply(All_pat, function(x) x*6+1)
+
+All_he <- lapply(All_he, function(x){data.frame(table(x)/N_subj_healthy)})
+All_pat <- lapply(All_pat, function(x){data.frame(table(x)/N_subj_pat)})
+
+
+Hists_cert_ratings_beads <- list()
+for(i in seq(All_he)) {
+x <- ggplot(NULL, aes(x=x, y=Freq))+
+  stat_summary_bin(aes(fill = "Healthy"),
+                   data=All_he[[i]],
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  stat_summary_bin(aes(fill= "Patient"),
+                   data=All_pat[[i]],
+                   fun.y="sum", geom = "bar", alpha=.5)+
+  theme(legend.position="bottom")+
+  theme_grey()+
+  ggtitle(sprintf("Seq %s", Seq_names[i]))+
+  xlab("Final certainty ratings")+
+  scale_y_continuous(limits=c(0, 1))
+Hists_cert_ratings_beads[[i]] <- x
+}
+
+# Set the default theme
+theme_set(theme_grey())
+
+Legend <-  g_legend(Hists_cert_ratings_beads[[1]])
+
+p1 <- Hists_cert_ratings_beads[[1]]
+p2 <- Hists_cert_ratings_beads[[2]]
+p3 <- Hists_cert_ratings_beads[[3]]
+p4 <- Hists_cert_ratings_beads[[4]]
+p5 <- Hists_cert_ratings_beads[[5]]
+p6 <- Hists_cert_ratings_beads[[6]]
+
+grid.arrange(p1+theme(legend.position="none"), p2+theme(legend.position="none"), p3+theme(legend.position="none"), p4+theme(legend.position="none"), p5+theme(legend.position="none"), p6+theme(legend.position="none"), top = "Proportion of final certainty ratings, beads", Legend)
+
+htmlTable(txtRound(Stats, 3), align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue),
+          caption = "Healthy vs patient final certainty scores, beads")
 
 ```
+
+**-------------------------------------------------------------------------------------------------**
 
 #### 1b. First-half DTC using lower criteria for certainty - Likert scales 2 & 6 - in both tasks.
 
