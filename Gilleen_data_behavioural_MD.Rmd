@@ -697,7 +697,6 @@ htmlTable(txtRound(Stats, 3), align = c("c", "|"), align.header=c("c", "|"), col
           caption = "Healthy vs patient final certainty scores, beads")
 
 ```
-
 **-------------------------------------------------------------------------------------------------**
 
 #### 1b. First-half DTC using lower criteria for certainty - Likert scales 2 & 6 - in both tasks.
