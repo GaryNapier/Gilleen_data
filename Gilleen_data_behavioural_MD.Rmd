@@ -319,6 +319,7 @@ Plot_beads()
 
 **-------------------------------------------------------------------------------------------------**
 
+
 #### 1a. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (0 or 1; 1 or 7 in original Likert scale) in the first half of both tasks.
 
 ##### NB - if subjects took more than 5 trials to certainty, this was counted as '5', so there were **at least** 5 trials to certainty. 
