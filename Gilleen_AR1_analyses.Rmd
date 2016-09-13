@@ -339,8 +339,8 @@ htmlTable(txtRound(T_tests_table, digits = 2),
 
 ```
 
-### **Test of ANOVA assumptions**
-##### Shapiro-Wilk tests of normality of residuals 
+### **Test of t-test assumptions**
+##### Shapiro-Wilk test of normality 
 ##### [<0.05 = NOT normal]
 
 
