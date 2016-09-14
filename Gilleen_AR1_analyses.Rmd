@@ -346,27 +346,33 @@ htmlTable(txtRound(T_tests_table, digits = 2),
 
 ```{r echo = FALSE, cache=F, htmlTable, results = 'asis'}
 
-  # Aov_mod_om2
-  SW_omega2 <- signif(sapply(T_om2_tests, function(x) Shapiro_NA(residuals(x))), digits = 3 )
-    # Aov_mod_om3
-  SW_omega3 <- signif(sapply(Aov_mod_om3, function(x) Shapiro_NA(residuals(x))), digits = 3 )
+  # Om2
+  Norm_omega2 <- do.call("rbind", lapply(Om2_vector, function(x) sapply(split(x$Om2_vector, Group), Shapiro_NA)))
 
-  # Aov_mod_nu
-  SW_nu <- signif(sapply(Aov_mod_nu, function(x) Shapiro_NA(residuals(x))), digits = 3)
 
-  # Aov_mod_M2
-  SW_M2 <- signif(sapply(Aov_mod_M2, function(x) Shapiro_NA(residuals(x))), digits = 3)
+
+  # Om_2
+  Norm_omega3 <- do.call("rbind", lapply(Om3_vector, function(x) sapply(split(x$Om3_vector, Group), Shapiro_NA)))
+
+  # Nu
+  Norm_nu <- do.call("rbind", lapply(Nu_vector, function(x) sapply(split(x$Nu_vector, Group), Shapiro_NA)))
+
+  # M2
+  Norm_M2 <- do.call("rbind", lapply(M2_vector, function(x) sapply(split(x$M2_vector, Group), Shapiro_NA)))
   # Aov_mod_M3
-  SW_M3 <- signif(sapply(Aov_mod_M3, function(x) Shapiro_NA(residuals(x))), digits = 3)
+  Norm_M3 <- do.call("rbind", lapply(M3_vector, function(x) sapply(split(x$M3_vector, Group), Shapiro_NA)))
 
-  # Aov_mod_phi2
-  SW_phi2 <- signif(sapply(Aov_mod_phi2, function(x) Shapiro_NA(residuals(x))), digits = 3)
-  # Aov_mod_phi3
-  SW_phi3 <- signif(sapply(Aov_mod_phi3, function(x) Shapiro_NA(residuals(x))), digits = 3)
+  # Phi2
+  Norm_phi2 <- do.call("rbind", lapply(Phi2_vector, function(x) sapply(split(x$Phi2_vector, Group), Shapiro_NA)))
+  # Phi3
+  Norm_phi3 <- do.call("rbind", lapply(Phi3_vector, function(x) sapply(split(x$Phi3_vector, Group), Shapiro_NA)))
 
-  # kable(data.frame(Model_names, SW_omega, SW_nu, SW_M, SW_phi), padding = 0)
+ Norm_table <-  cbind(Norm_omega2, Norm_omega3, Norm_nu, Norm_M2, Norm_M3, Norm_phi2, Norm_phi3)
   
-  SW_data <- data.frame(Model_names, SW_omega2, SW_omega3, SW_nu, SW_M2, SW_M3, SW_phi2, SW_phi3)
+  
+  # kable(data.frame(Model_names, Norm_omega2, Norm_omega3, Norm_nu, Norm_M2, Norm_M3, Norm_phi2, Norm_phi3), padding = 0)
+  
+  Norm_tests <- data.frame(Model_names, SW_omega2, SW_omega3, SW_nu, SW_M2, SW_M3, SW_phi2, SW_phi3)
   do.call("htmlTable", c(list(SW_data), Table_options))
 
 ```
