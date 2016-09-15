@@ -10,6 +10,7 @@ output: html_document
 ```{r echo = FALSE, cache=TRUE}
 Subjects <- 1
 Analyses_nos <- c(1, 2)
+Plot_subj <- TRUE
 Do_stats = TRUE
 Do_plots = TRUE
 
@@ -17,7 +18,7 @@ Do_plots = TRUE
 
 <!-- Custom functions, load data & clean -->
 
-```{r echo = FALSE, cache=TRUE}
+```{r echo = FALSE,  warning=FALSE, message=FALSE, cache=TRUE}
 
 tryCatch({
 setwd("U:\\Gilleen_data")
@@ -66,6 +67,7 @@ Table_options <- list(align=c("c","|"), align.header =c("c","|"), col.columns = 
 # Get model names/numbers
 Model_names <- vector()
 for (i in seq(Analyses_nos)){
+  if (i )
   Model_names[i] <- sprintf("A%g", Analyses_nos[i])  
 }
 
@@ -85,6 +87,12 @@ N_parameters <- length(Parameter_names)
 N_subjects <- length(Gilleen_analyses_results[[1]][[1]][[1]][[1]])
 N_analyses <- length(Analyses_nos)
 Dataset_used <- Gilleen_analyses_results[[1]][[1]][[1]][,,1][3]
+Mw_names <-  c("Z", "p", "r")
+
+Mw_effect <- function(z, n){
+  Effect <- abs(z)/sqrt(n)
+  return(Effect)
+}
 
 #----------------------------------------------------------------
 # Get & display parameter priors used for each selected analysis
@@ -129,7 +137,7 @@ rownames(Priors_df_AR1) <- Model_names
 
 <!-- GET POSTERIORS AND STATS TO PASS TO PLOTS/ DISPLAYS -->
 
-```{r echo=FALSE, cache=TRUE}
+```{r echo=FALSE,  warning=FALSE, message=FALSE, cache=TRUE}
 
 # Get posteriors from selected analyses - for overall stats
 Om2_vector <- vector("list", length(Gilleen_analyses_results[[1]]))
@@ -254,14 +262,97 @@ for (j in seq(Predictions))
   for (i in seq(Predictions[[j]])){
     Predictions[[j]][[i]] <- append(Predictions[[j]][[i]], Mu2_0[[j]][i], 0)
   }
-```
-  
 
-<!--  CREATE parametric models - t-tests -->
+```
+
+### **Means, SDs, t-test & non-parametric summaries**
+
+#### Mean/SD table
+
+```{r echo = FALSE, results = 'asis', warning=FALSE, message=FALSE, cache=F}
+    
+    Col_names <- c("Mean", "SD")
+    
+    # OMEGA2
+    # Mean / sd groups
+    Om2_mean_sd <- do.call("rbind", lapply( lapply( Om2_vector, function(x) {
+     data.frame(rbind(
+          c(mean(x$Om2_vector[Ctrl]), sd(x$Om2_vector[Ctrl])), 
+          c(mean(x$Om2_vector[Pat]), sd(x$Om2_vector[Pat]))
+          ) ) 
+    }) ,setNames, Col_names ))
+    
+    # OMEGA3
+    Om3_mean_sd <- do.call("rbind", lapply( lapply( Om3_vector, function(x) {
+     data.frame(rbind(
+          c(mean(x$Om3_vector[Ctrl]), sd(x$Om3_vector[Ctrl])), 
+          c(mean(x$Om3_vector[Pat]), sd(x$Om3_vector[Pat]))
+          ) ) 
+    }) ,setNames, Col_names ))
+  
+    # NU
+    # Mean/sd groups
+    Nu_mean_sd <- do.call("rbind", lapply( lapply( Nu_vector, function(x) {
+     data.frame(rbind(
+          c(mean(x$Nu_vector[Ctrl]), sd(x$Nu_vector[Ctrl])), 
+          c(mean(x$Nu_vector[Pat]), sd(x$Nu_vector[Pat]))
+          ) ) 
+    }) ,setNames, Col_names ))
+      
+    # M2
+    # Mean/sd groups
+    M2_mean_sd <-   do.call("rbind", lapply( lapply( M2_vector, function(x) {
+     data.frame(rbind(
+          c(mean(x$M2_vector[Ctrl]), sd(x$M2_vector[Ctrl])), 
+          c(mean(x$M2_vector[Pat]), sd(x$M2_vector[Pat]))
+          ) ) 
+    }) ,setNames, Col_names ))
+    
+    # M3
+    M3_mean_sd <-   do.call("rbind", lapply( lapply( M3_vector, function(x) {
+     data.frame(rbind(
+          c(mean(x$M3_vector[Ctrl]), sd(x$M3_vector[Ctrl])), 
+          c(mean(x$M3_vector[Pat]), sd(x$M3_vector[Pat]))
+          ) ) 
+    }) ,setNames, Col_names ))
+    
+    # PHI2
+    # Mean / sd groups
+    Phi2_mean_sd <-   do.call("rbind", lapply( lapply( Phi2_vector, function(x) {
+     data.frame(rbind(
+          c(mean(x$Phi2_vector[Ctrl]), sd(x$Phi2_vector[Ctrl])), 
+          c(mean(x$Phi2_vector[Pat]), sd(x$Phi2_vector[Pat]))
+          ) ) 
+    }) ,setNames, Col_names ))
+      
+    # PHI3
+    # Mean / sd groups
+    Phi3_mean_sd <- do.call("rbind", lapply( lapply( Phi3_vector, function(x) {
+     data.frame(rbind(
+          c(mean(x$Phi3_vector[Ctrl]), sd(x$Phi3_vector[Ctrl])), 
+          c(mean(x$Phi3_vector[Pat]), sd(x$Phi3_vector[Pat]))
+          ) ) 
+    }) ,setNames, Col_names ))
+    
+    # Bring all means, SDs together
+    Mean_sd <- cbind(Om2_mean_sd, Om3_mean_sd, Nu_mean_sd, M2_mean_sd, M3_mean_sd, Phi2_mean_sd, Phi3_mean_sd)
+  
+  htmlTable(txtRound(Mean_sd, digits = 2),
+            rnames=rep(Group_names, N_analyses), 
+            rgroup = Model_names, 
+            n.rgroup=rep(N_groups, N_analyses) , 
+            cgroup = Parameter_names, 
+            n.cgroup= rep(2, N_parameters), 
+            align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", "none", Blue, Blue))
+  
+  
+```
+
+#### Summary of t-tests
+
+<!--  CREATE & DISPLAY parametric models - t-tests -->
 ```{r echo=FALSE, cache=F}
-#------------------------------------------------
-# CREATE parametric models - t-tests
-#------------------------------------------------
+
 # Create t-tests:
 # Om2
 T_om2_tests <- lapply(Om2_vector, function(x) t.test(x$Om2_vector ~ x$Group))
@@ -317,8 +408,6 @@ Labels <- factor(c(rep("Omega2", 1), rep("Omega3", 1),  rep("Nu", 1), rep("M2", 
                    rep("M3", 1), rep("Phi2", 1), rep("Phi3", 1)), 
                  levels = c("Omega2", "Omega3", "Nu", "M2", "M3", "Phi2", "Phi3")) 
 
-
-
 # Data frame of t-tests
 T_tests_table <- cbind(T_om2, T_om3, T_Nu, T_M2, T_M3, T_Phi2, T_Phi3)
 
@@ -343,13 +432,10 @@ htmlTable(txtRound(T_tests_table, digits = 2),
 ##### Shapiro-Wilk test of normality 
 ##### [<0.05 = NOT normal]
 
-
 ```{r echo = FALSE, cache=F, htmlTable, results = 'asis'}
 
   # Om2
   Norm_omega2 <- do.call("rbind", lapply(Om2_vector, function(x) sapply(split(x$Om2_vector, Group), Shapiro_NA)))
-
-
 
   # Om_2
   Norm_omega3 <- do.call("rbind", lapply(Om3_vector, function(x) sapply(split(x$Om3_vector, Group), Shapiro_NA)))
@@ -369,29 +455,341 @@ htmlTable(txtRound(T_tests_table, digits = 2),
 
  Norm_table <-  cbind(Norm_omega2, Norm_omega3, Norm_nu, Norm_M2, Norm_M3, Norm_phi2, Norm_phi3)
   
-  
-  # kable(data.frame(Model_names, Norm_omega2, Norm_omega3, Norm_nu, Norm_M2, Norm_M3, Norm_phi2, Norm_phi3), padding = 0)
-  
-  Norm_tests <- data.frame(Model_names, SW_omega2, SW_omega3, SW_nu, SW_M2, SW_M3, SW_phi2, SW_phi3)
-  do.call("htmlTable", c(list(SW_data), Table_options))
+ htmlTable(txtRound(Norm_table, digits = 2), 
+           rnames=Model_names, 
+           cgroup = Parameter_names, 
+           n.cgroup = rep(2, N_parameters), 
+           align = c("c", "|"), align.header=c("c", "|"),
+          col.columns=c(rep("none", 2), rep(Blue, 2)),
+          caption = "Tests of normality in posteriors, control and patient (< 0.05 = NOT normal)")
+
 
 ```
 
+**-------------------------------------------------------------------------------------------**
+
+#### Non-parametric tests - Mann-whitney U
+
+```{r echo = FALSE, results = 'asis', warning=FALSE, message=FALSE, cache=F}
+ 
+    # Om2 mw
+   Om2_mw <- lapply(Om2_vector, function(x) wilcox_test(x$Om2_vector ~ x$Group))
+   Om2_effects <- do.call("rbind", lapply(Om2_mw, function(x) {Mw_effect(statistic(x), N_subjects)}) )
+   Om2_mw <- do.call("rbind", lapply(Om2_mw, function(x){c(statistic(x),pvalue(x))}) )
+   Om2_mw <- setNames(data.frame(cbind(Om2_mw, Om2_effects)), Mw_names)
+    
+   # Om3 mw
+   Om3_mw <- lapply(Om3_vector, function(x) wilcox_test(x$Om3_vector ~ x$Group))
+   Om3_effects <- do.call("rbind", lapply(Om3_mw, function(x) {Mw_effect(statistic(x), N_subjects)}) )
+   Om3_mw <- do.call("rbind", lapply(Om3_mw, function(x){c(statistic(x),pvalue(x))}) )
+   Om3_mw <- setNames(data.frame(cbind(Om3_mw, Om3_effects)), Mw_names)
+   
+   # Nu mw
+   Nu_mw <- lapply(Nu_vector, function(x) wilcox_test(x$Nu_vector ~ x$Group))
+   Nu_effects <- do.call("rbind", lapply(Nu_mw, function(x) {Mw_effect(statistic(x), N_subjects)}) )
+   Nu_mw <- do.call("rbind", lapply(Nu_mw, function(x){c(statistic(x),pvalue(x))}) )
+   Nu_mw <- setNames(data.frame(cbind(Nu_mw, Nu_effects)), Mw_names)
+   
+   # M2 mw
+   M2_mw <- lapply(M2_vector, function(x) wilcox_test(x$M2_vector ~ x$Group))
+   M2_effects <- do.call("rbind", lapply(M2_mw, function(x) {Mw_effect(statistic(x), N_subjects)}) )
+   M2_mw <- do.call("rbind", lapply(M2_mw, function(x){c(statistic(x),pvalue(x))}) )
+   M2_mw <- setNames(data.frame(cbind(M2_mw, M2_effects)), Mw_names)
+   
+   # M3 mw
+   M3_mw <- lapply(M3_vector, function(x) wilcox_test(x$M3_vector ~ x$Group))
+   M3_effects <- do.call("rbind", lapply(M3_mw, function(x) {Mw_effect(statistic(x), N_subjects)}) )
+   M3_mw <- do.call("rbind", lapply(M3_mw, function(x){c(statistic(x),pvalue(x))}) )
+   M3_mw <- setNames(data.frame(cbind(M3_mw, M3_effects)), Mw_names)
+   
+   # Phi2 mw
+   Phi2_mw <- lapply(Phi2_vector, function(x) wilcox_test(x$Phi2_vector ~ x$Group))
+   Phi2_effects <- do.call("rbind", lapply(Phi2_mw, function(x) {Mw_effect(statistic(x), N_subjects)}) )
+   Phi2_mw <- do.call("rbind", lapply(Phi2_mw, function(x){c(statistic(x),pvalue(x))}) )
+   Phi2_mw <- setNames(data.frame(cbind(Phi2_mw, Phi2_effects)), Mw_names)
+   
+   # Phi3 mw
+   Phi3_mw <- lapply(Phi3_vector, function(x) wilcox_test(x$Phi3_vector ~ x$Group))
+   Phi3_effects <- do.call("rbind", lapply(Phi3_mw, function(x) {Mw_effect(statistic(x), N_subjects)}) )
+   Phi3_mw <- do.call("rbind", lapply(Phi3_mw, function(x){c(statistic(x),pvalue(x))}) )
+   Phi3_mw <- setNames(data.frame(cbind(Phi3_mw, Phi3_effects)), Mw_names)
   
+ MW_tables <- cbind(Om2_mw, Om3_mw, Nu_mw, M2_mw, M3_mw, Phi2_mw, Phi3_mw)
+ 
+ 
+ htmlTable(txtRound(MW_tables, digits = 2),
+           rnames=Model_names,
+           n.cgroup = rep(3, N_parameters),
+            align = c("c", "|"), align.header=c("c", "|"),
+          col.columns=c(rep("none", 3), rep(Blue, 3)),
+          caption = "Mann-whitney U tests")
+
+ 
+   
+```
+
+**-------------------------------------------------------------------------------------------**
+
+### **Fit - beads of opposite colour (BOOC) for selected analyses**
+
+```{r echo = FALSE, results = 'asis', warning=FALSE, message=FALSE, cache=F}
+
+  if (Do_stats == TRUE){ 
+#     message("FIT (BOOC)")
+#     Dummy_var <- sapply(seq_along(Fit_BOOC_whole_model), function(i) 
+#       c(message(sprintf("Fit BOOC for whole analysis %d:", Analyses_nos[i])),
+#         print(Fit_BOOC_whole_model[[i]])))
+    
+   BOOC_data <- data.frame("Analysis_no."=Model_names, 
+                           "Fit_BOOC"=signif(unlist(Fit_BOOC_whole_model), digits=3))
+   do.call("htmlTable", c(list(BOOC_data), Table_options))
+  } # if (Do_stats == TRUE)
+ 
+```
   
+**-------------------------------------------------------------------------------------------**
+
+**-------------------------------------------------------------------------------------------**
+
+```{r echo = FALSE, results = 'asis', warning=FALSE, message=FALSE, cache=F}
+#---------------------------------------------------------------
+# For selected subjects - to pass to subject trajectory plots
+#---------------------------------------------------------------
+
+# DONE
+# Subset Beads, Responses & Predictions by selected analyses and subjects
+Beads_selected <- lapply(Beads, function(x) lapply(x[Subjects], function(x) data.frame(Beads=x)))
+Responses_selected <- lapply(Responses, function(x) lapply(x[Subjects], function(x) data.frame(Responses=x)))
+Predictions_selected <- lapply(Predictions, function(x) lapply(x[Subjects], function(x) data.frame(Predictions=x)))
+Learning_rate_selected <- lapply(Learning_rate, function(x) lapply(x[Subjects], function(x) data.frame(LR=x)))
+
+# x-axes must be from 0 to length of Predictions (for each analysis) in order 
+# to align with the responses
+x_axes <- vector("list", length(Predictions_selected))
+x_axes <- lapply(seq_along(x_axes),
+                 function(i) 
+                   data.frame(Index = 0:(length("[["(Predictions_selected[[i]][[1]], 1))-1)))
+```
+
+### **Plots**
+
+`r if(Plot_subj)'##### Selected subject(s) response trajectory'`
+
+```{r echo = FALSE, results = 'asis', warning=FALSE, message=FALSE, cache=F}
+        
+# ------------------------------------------------------
+# Plot selected subject(s) response trajectory
+# ------------------------------------------------------
+# Set the default theme
+theme_set(theme_grey())
+
+if (Plot_subj == TRUE){
+        
+for (i in seq_along(Analyses_nos)){
+  for (j in seq_along(Subjects)){
+      
+    # tryCatch({x11()}, error = function(e) {quartz()}, warning = function(w){quartz()}) # New window
+      print(ggplot()+
+              geom_line(data=Predictions_selected[[i]][[j]],
+                        aes(x=x_axes[[i]]$Index, y=Predictions, colour="Predictions"), 
+                        size=1.2, alpha = 0.6, colour="red") +
+              
+              geom_point(data=Beads_selected[[i]][[j]],
+                         aes(x=1:nrow(Beads_selected[[i]][[j]]), y=Beads, colour=factor(Beads)),
+                         size=3, show.legend = FALSE) + 
+              
+              geom_point(data=Responses_selected[[i]][[j]], 
+                         aes(x=1:nrow(Responses_selected[[i]][[j]]), y=Responses),
+                         size=1.5, show.legend = FALSE) +
+              
+              # Plot learning rate for AR1 models     
+             {if (!(length(Learning_rate) == 0) & Analyses_nos[i] > 10){
+               geom_line(aes(x=1:nrow(Learning_rate_selected[[i]][[j]]), y=LR, colour="Learning rate"), 
+                         size=1, colour = "cornflowerblue", data=Learning_rate_selected[[i]][[j]])}}+
+              
+              theme(legend.position="bottom")+
+              
+              xlab("Bead index")+
+              ylab("Responses (jar probability estimate)")+
+              scale_x_continuous(breaks = seq(0, length(x_axes[[i]][[1]]), 1))+
+              coord_cartesian(ylim=c(0,1))+
+              scale_y_continuous(breaks = seq(0, 1, 0.1))+
+              
+              ggtitle(paste(sprintf("S %g, A %g; Fit (BOOC) = %g (smaller is better)\n", 
+                                    Subjects[j], Analyses_nos[i], Fit_BOOC_subject[[i]][j]),
+                            sprintf("Posteriors: Om2=%g; Om3=%g, Nu=%g; M2=%g; M3=%g; Phi2=%g; Phi3=%g",
+                                    signif(Om2_vector[[i]][Subjects[j], 2], digits=3), 
+                                    signif(Om3_vector[[i]][Subjects[j], 2], digits=3), 
+                                    
+                                    signif(Nu_vector[[i]][Subjects[j], 2], digits=3),
+                                    
+                                    signif(M2_vector[[i]][Subjects[j], 2], digits=3), 
+                                    signif(M3_vector[[i]][Subjects[j], 2], digits=3), 
+                                    
+                                    signif(Phi2_vector[[i]][Subjects[j], 2], digits=3),
+                                    signif(Phi3_vector[[i]][Subjects[j], 2], digits=3)
+                                    ) ) ) +
+              theme(plot.title = element_text(size = 12)) 
+      
+            )# print()
+    
+    } 
+  }
+        
+} # if(Plot_subj == TRUE)
   
+```
+
+#### Box & density plots of parameter posteriors
+
+```{r  echo = FALSE, results = 'asis', warning=FALSE, message=FALSE, cache=F}
+
+if (Do_plots == TRUE){
+
+for (i in seq(Om2_vector)){
+  levels(Om2_vector[[i]]$Group) <- gsub(" ", "\n", levels(Om2_vector[[i]]$Group))
+  levels(Om3_vector[[i]]$Group) <- gsub(" ", "\n", levels(Om3_vector[[i]]$Group))
+  levels(Nu_vector[[i]]$Group) <- gsub(" ", "\n", levels(Nu_vector[[i]]$Group))
+  levels(M2_vector[[i]]$Group) <- gsub(" ", "\n", levels(M2_vector[[i]]$Group))
+  levels(M3_vector[[i]]$Group) <- gsub(" ", "\n", levels(M3_vector[[i]]$Group))
+  levels(Phi2_vector[[i]]$Group) <- gsub(" ", "\n", levels(Phi2_vector[[i]]$Group))
+  levels(Phi3_vector[[i]]$Group) <- gsub(" ", "\n", levels(Phi3_vector[[i]]$Group))
+}
   
+Title_size <- 7  
+Base_size <- 7
   
+# Box plot
+for (i in 1:length(Analyses_nos)){
+  #tryCatch({x11()}, error = function(e) {quartz()}, warning = function(w){quartz()}) # New window
+  Om2_box <- ggplot(Om2_vector[[i]], aes(Group, Om2_vector))+
+    geom_boxplot(aes(colour = Group), size = 0.5)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("Om2")+ 
+    labs(x = "Group", y = "Om2 posteriors")+ theme_grey(base_size = Base_size)
+    # scale_x_discrete(limits = levels(Group))
+  Om3_box <- ggplot(Om3_vector[[i]], aes(Group, Om3_vector))+
+    geom_boxplot(aes(colour = Group), size = 0.5)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("Om3")+
+    labs(x = "Group", y = "Om3 posteriors") + theme_grey(base_size = Base_size)
+    # scale_x_discrete(limits = levels(Group))
   
+  Nu_box <- ggplot(Nu_vector[[i]], aes(Group, Nu_vector))+
+    geom_boxplot(aes(colour = Group), size = 0.5)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("log(Nu)")+
+    labs(x = "Group", y = "Nu posteriors") + theme_grey(base_size = Base_size)
   
+  M2_box <- ggplot(M2_vector[[i]], aes(Group, M2_vector))+
+    geom_boxplot(aes(colour = Group), size = 0.5)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("M2")+
+    labs(x = "Group", y = "M2 posteriors") + theme_grey(base_size = Base_size)
+    # scale_x_discrete(limits = levels(Group))
+  M3_box <- ggplot(M3_vector[[i]], aes(Group, M3_vector))+
+    geom_boxplot(aes(colour = Group), size = 0.5)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("M3")+
+    labs(x = "Group", y = "M3 posteriors") + theme_grey(base_size = Base_size)
+    # scale_x_discrete(limits = levels(Group))
   
+  Phi2_box <- ggplot(Phi2_vector[[i]], aes(Group, Phi2_vector))+
+    geom_boxplot(aes(colour = Group), size = 0.5)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("Phi2")+
+    labs(x = "Group", y = "Phi2 posteriors") + theme_grey(base_size = Base_size)
+  Phi3_box <- ggplot(Phi3_vector[[i]], aes(Group, Phi3_vector))+
+    geom_boxplot(aes(colour = Group), size = 0.5)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("Phi3")+
+    labs(x = "Group", y = "Phi3 posteriors") + theme_grey(base_size = Base_size)
+  grid.arrange(Om2_box+theme(legend.position="none"),
+               Om3_box+theme(legend.position="none"),
+               Nu_box+theme(legend.position="none"),
+               M2_box+theme(legend.position="none"),
+               M3_box+theme(legend.position="none"), 
+               Phi2_box+theme(legend.position="none"),
+               Phi3_box+theme(legend.position="none"), ncol=4, nrow=2, 
+               top = sprintf("Om2, Om3, log(Nu), M2, M3, Phi2 & Phi3 posteriors; A %d", 
+                             Analyses_nos[i]), 
+               heights=rep(5, 2), widths=rep(3, 4))
   
+}
+
+# Density plots
+for (i in 1:length(Analyses_nos)){
+  #tryCatch({x11()}, error = function(e) {quartz()}, warning = function(w){quartz()}) # New window
+  Om2_dens <- ggplot(Om2_vector[[i]], aes(Om2_vector))+
+    geom_density(aes(fill = Group, colour = Group), size = 0.5, alpha=0.3)+
+    theme(legend.position="right", plot.title = element_text(size = Title_size))+
+    ggtitle("Om2") + theme_grey(base_size = Base_size)
+
+  Om3_dens <- ggplot(Om3_vector[[i]], aes(Om3_vector))+
+    geom_density(aes(fill = Group, colour = Group), size = 0.5, alpha=0.3)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("Om3") + theme_grey(base_size = Base_size)
   
+  Nu_dens <- ggplot(Nu_vector[[i]], aes(Nu_vector))+
+    geom_density(aes(fill = Group, colour = Group), size = 0.5, alpha=0.3)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("log(Nu)") + theme_grey(base_size = Base_size)
   
+  M2_dens <- ggplot(M2_vector[[i]], aes(M2_vector))+
+    geom_density(aes(fill = Group, colour = Group), size = 0.5, alpha=0.3)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("M2") + theme_grey(base_size = Base_size)
+  M3_dens <- ggplot(M3_vector[[i]], aes(M3_vector))+
+    geom_density(aes(fill = Group, colour = Group), size = 0.5, alpha=0.3)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("M3") + theme_grey(base_size = Base_size)
   
+  Phi2_dens <- ggplot(Phi2_vector[[i]], aes(Phi2_vector))+
+    geom_density(aes(fill = Group, colour = Group), size = 0.5, alpha=0.3)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("Phi2") + theme_grey(base_size = Base_size)
+  Phi3_dens <- ggplot(Phi3_vector[[i]], aes(Phi3_vector))+
+    geom_density(aes(fill = Group, colour = Group), size = 0.5, alpha=0.3)+
+    theme(plot.title = element_text(size = Title_size))+
+    ggtitle("Phi3") + theme_grey(base_size = Base_size)
   
+  My_legend <- g_legend(Om2_dens)
+  grid.arrange(Om2_dens+theme(legend.position="none"),
+               Om3_dens+theme(legend.position="none"), 
+               Nu_dens+theme(legend.position="none"), 
+               M2_dens+theme(legend.position="none"),
+               M3_dens+theme(legend.position="none"), 
+               Phi2_dens+theme(legend.position="none"),
+               Phi3_dens+theme(legend.position="none"), ncol=4, nrow=2, 
+               top = sprintf("Om2, Om3, log(Nu), M2, M3, Phi2 & Phi3 posteriors; A %d", 
+                             Analyses_nos[i]), 
+               My_legend,
+               heights=rep(5, 2), widths=rep(3, 4))
   
-  
-  
-  
+}
+
+} # if (Do_plots == TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
