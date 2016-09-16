@@ -7,7 +7,7 @@ output: html_document
 
 <!-- arguments -->
 
-```{r echo = FALSE, cache=TRUE}
+```{r echo = FALSE, cache=F}
 Subjects <- 1
 Analyses_nos <- c(1,2)
 Plot_subj <- TRUE
@@ -18,7 +18,7 @@ Do_plots = TRUE
 
 <!-- Custom functions, load data & clean -->
 
-```{r echo = FALSE,  warning=FALSE, message=FALSE, cache=TRUE}
+```{r echo = FALSE,  warning=FALSE, message=FALSE, cache=FALSE}
 
 tryCatch({
 setwd("U:\\Gilleen_data")
@@ -136,7 +136,7 @@ rownames(Priors_df_AR1) <- Model_names
 
 <!-- GET POSTERIORS AND STATS TO PASS TO PLOTS/ DISPLAYS -->
 
-```{r echo=FALSE,  warning=FALSE, message=FALSE, cache=TRUE}
+```{r echo=FALSE,  warning=FALSE, message=FALSE, cache=F}
 
 # Get posteriors from selected analyses - for overall stats
 Om2_vector <- vector("list", length(Gilleen_analyses_results[[1]]))
