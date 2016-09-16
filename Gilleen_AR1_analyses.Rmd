@@ -9,7 +9,7 @@ output: html_document
 
 ```{r echo = FALSE, cache=TRUE}
 Subjects <- 1
-Analyses_nos <- c(1, 2)
+Analyses_nos <- c(1,2)
 Plot_subj <- TRUE
 Do_stats = TRUE
 Do_plots = TRUE
@@ -23,11 +23,12 @@ Do_plots = TRUE
 tryCatch({
 setwd("U:\\Gilleen_data")
 }, error=function(e){
-setwd("~/Dropbox/Peters_data")
+setwd("~/Dropbox/Gilleen_Analysis/For Gary")
 })
 
-# Source packages and custom function
+# Source packages and custom functions
 source("https://raw.githubusercontent.com/GaryNapier/Packages_functions/master/PACKAGES.R")
+library(htmlTable) # FFS!
 
 #---------------------------------------
 # Load in data & clean
@@ -67,8 +68,11 @@ Table_options <- list(align=c("c","|"), align.header =c("c","|"), col.columns = 
 # Get model names/numbers
 Model_names <- vector()
 for (i in seq(Analyses_nos)){
-  if (i )
-  Model_names[i] <- sprintf("A%g", Analyses_nos[i])  
+  if (is.even(i)){
+  Model_names[i] <- sprintf("A%g_beads", Analyses_nos[i])  
+  }else{
+  Model_names[i] <- sprintf("A%g_PDG", Analyses_nos[i])  
+  }
 }
 
 # Save names of priors
@@ -88,11 +92,6 @@ N_subjects <- length(Gilleen_analyses_results[[1]][[1]][[1]][[1]])
 N_analyses <- length(Analyses_nos)
 Dataset_used <- Gilleen_analyses_results[[1]][[1]][[1]][,,1][3]
 Mw_names <-  c("Z", "p", "r")
-
-Mw_effect <- function(z, n){
-  Effect <- abs(z)/sqrt(n)
-  return(Effect)
-}
 
 #----------------------------------------------------------------
 # Get & display parameter priors used for each selected analysis
@@ -340,12 +339,13 @@ for (j in seq(Predictions))
   htmlTable(txtRound(Mean_sd, digits = 2),
             rnames=rep(Group_names, N_analyses), 
             rgroup = Model_names, 
-            n.rgroup=rep(N_groups, N_analyses) , 
+            n.rgroup=rep(N_groups, N_analyses), 
             cgroup = Parameter_names, 
             n.cgroup= rep(2, N_parameters), 
             align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", "none", Blue, Blue))
   
-  
+
+
 ```
 
 #### Summary of t-tests
