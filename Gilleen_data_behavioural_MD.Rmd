@@ -60,7 +60,7 @@ Blue <- "#F1F0FA"
 
 Action <- c("Compete", "Cooperate")
 
-# Set the default theme
+# Set the theme
 theme_set(theme_grey())
 
 #---------------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ of jar/trustworthiness in Seq B and Seq C only.
 
 **-------------------------------------------------------------------------------------------------**
 
-### Plots of mean responses, PDG and beads tasks
+### **Plots of mean responses, PDG and beads tasks**
 
 ```{r echo=F, warning=FALSE, message=FALSE}
 
@@ -320,7 +320,7 @@ Plot_beads()
 **-------------------------------------------------------------------------------------------------**
 
 
-#### 1a. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (0 or 1; 1 or 7 in original Likert scale) in the first half of both tasks.
+#### **1a. First half ‘draws to certainty (DTC)’ - How many trials until subjects reach maximum certainty (0 or 1; 1 or 7 in original Likert scale) in the first half of both tasks.**
 
 ##### NB - if subjects took more than 5 trials to certainty, this was counted as '5', so there were **at least** 5 trials to certainty. 
 
@@ -515,14 +515,25 @@ Number_DTC_beads <- ggplot(NULL, aes(Draw, Freq))+
 Number_DTC_beads
 ```
 
-##### Group statistics of final certainty ratings for each seq, PDG and beads
+##### **Group statistics of final certainty ratings for each seq, PDG and beads.**
+###### - Interpreted as the maximum individual rating for each subject. 
 <!-- Group stats on the final certainty scores in each sequence? -->
 ```{r echo=F, warning=FALSE, message=FALSE}
 #---------------------------------------------------------------------------------------------
 # Group stats on the final certainty scores in each sequence?
 #---------------------------------------------------------------------------------------------
 
-# Get final cert scores
+# Final scores - i.e. just the mean of the LAST trial (can be seen matching the averaged data plots at the start)
+# Final_he_PDG <- as.numeric(txtRound(c(mean(Healthy_PDG[, 10]), mean(Healthy_PDG[, 20]), mean(Healthy_PDG[, 30]), mean(Healthy_PDG[, 40])), digits = 2))
+# Final_pat_PDG <- as.numeric(txtRound(c(mean(Patient_PDG[, 10]), mean(Patient_PDG[, 20]), mean(Patient_PDG[, 30]), mean(Patient_PDG[, 40])), digits = 2))
+# Final_he_beads <- as.numeric(txtRound(c(mean(Healthy_beads[, 10]), mean(Healthy_beads[, 20]), mean(Healthy_beads[, 30]), mean(Healthy_beads[, 40])), digits = 2))
+# Final_pat_beads <- as.numeric(txtRound(c(mean(Patient_beads[, 10]), mean(Patient_beads[, 20]), mean(Patient_beads[, 30]), mean(Patient_beads[, 40])), digits = 2))
+# 
+# Final_ratings <- rbind(Final_he_PDG, Final_pat_PDG, Final_he_beads, Final_pat_beads)
+# 
+# htmlTable(Final_ratings, rnames = rep(c("Healthy", "Patient"), 2), rgroup = c("PDG", "Beads"), n.rgroup = rep(2, 2), header = c("A/D", "B/C", "C/B", "D/A"), align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue), caption = "Mean final ratings (last trial)")
+
+# Get final cert scores - the following is the MAX of each individual's estimate for each seq. 
 
 # PDG - cert scores
 Healthy_PDG_A_cert <- apply(Healthy_PDG[A_PDG_ind], 1, max)
@@ -1155,7 +1166,6 @@ htmlTable(txtRound(Test_D_table, 3),
           caption = txtMergeLines("t-tests on healthy vs patient for each draw, seq A"))
 
 ```
-
 
 
 
