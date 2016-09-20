@@ -2,8 +2,16 @@
 
 source("https://raw.githubusercontent.com/GaryNapier/Packages_functions/master/PACKAGES.R")
 
+# Set the theme
+theme_set(theme_grey())
+
+setwd("U:/Gilleen_data")
+
 He_measures <- read.csv("Healthy_measures.csv")
 Pat_measures <- read.csv("Pat_measures.csv")
+
+N_he <- nrow(He_measures)
+N_pat <- nrow(Pat_measures)
 
 
 names(He_measures)
@@ -47,7 +55,7 @@ Pat_schtpy <- Pat_measures$SPQBT
 He_paranoia <- dplyr::select(He_measures, SPSpreA, SPSpostA, SPSpreB, SPSpostB, SPSpreC, SPSpostC,
                              SPSpreD, SPSpostD)
 
-Pat_paranoia <- select(Pat_measures, SPSpreA, SPSpostA, SPSpreB, SPSpostB, SPSpreC, SPSpostC,
+Pat_paranoia <- dplyr::select(Pat_measures, SPSpreA, SPSpostA, SPSpreB, SPSpostB, SPSpreC, SPSpostC,
                        SPSpreD, SPSpostD)
 
 #-----------------------------------------------------------------------------------------------------
@@ -69,44 +77,38 @@ Pat_wm <- Pat_measures$LNS
 
 #-----------------------------------------------------------------------------------------------------
 
-# Make some plots
+# PARANOIA SCALE
 
-# Add paranoia to PDG and beads averaged plots
-
-Plot_PDG <- function(){
-  ggplot(Healthy_PDG_sum, aes(x=Sequence, y=Data, group=1)) +
-    geom_errorbar(aes(ymin=Data-se, ymax=Data+se), width=.2)+
-    geom_line(colour = "red", size = 1, alpha=.7)+
-    geom_errorbar(data=Patient_PDG_sum, aes(ymin=Data-se, ymax=Data+se), width=.2)+
-    geom_line(data=Patient_PDG_sum, aes(x=Sequence, y=Data), colour = "blue", size = 1, alpha=.7)+
-    geom_point(data=data.frame(Seq_PDG),
-               aes(x=1:length(Seq_PDG), y=Seq_PDG, colour=factor(Seq_PDG)),
-               size=3, show.legend = FALSE)+
-    geom_bar(stat="identity", data = data.frame(colMeans(He_paranoia)), width = 0.2)+
-    scale_x_discrete(labels = Seq_PDG)+
-    expand_limits(x = c(1, length(Seq_PDG)+3))+
-    scale_y_continuous(breaks = seq(0,1,0.1), limits = c(-0.1, 1.1))+
-    ylab("Trustworthiness rating")+
-    geom_vline(xintercept = c(10.5, 20.5, 30.5), linetype = "longdash")+
-    geom_hline(yintercept = Values, alpha=Alpha_line)+
-    annotate("text", x = c(5, 15, 25, 35), y=0.1, label = c("A", "B", "C", "D"), fontface = "bold")+
-    annotate("text", x = length(Seq_PDG)/2, y=c(-0.1, 1.1), label=c("Compete", "Cooperate"))+
-    annotate("text", x=length(Seq_PDG)+1, y=Values, label=as.character(1:7), size=3 )+
-    annotate("text", x = length(Seq_PDG)+2, y=0.5, label="Original scale", angle=270)+
-    ggtitle("Mean PDG data, healthy (red) & patient (blue).\n0 = totally untrustworthy, 1 = totally trustworthy")+
-    theme_grey()
-}
-
-Plot_PDG()
+# Stat tests
 
 
 
 
+# Prep data for plotting
+He_paranoia <- melt(He_paranoia)
+Pat_paranoia <- melt(Pat_paranoia)
+
+He_paranoia <- summarySE(He_paranoia, measurevar = "value", groupvars = "variable") 
+Pat_paranoia <- summarySE(Pat_paranoia, measurevar = "value", groupvars = "variable") 
+
+Paranoia <- rbind(He_paranoia, Pat_paranoia)
+
+Paranoia$Group <- factor(c(rep("Healthy", 8), rep("Patient", 8)))
+
+Paranoia$variable <- factor(Paranoia$variable, 
+                           levels = c("SPSpreA", "SPSpostA", "SPSpreB", "SPSpostB", "SPSpreC",
+                                      "SPSpostC", "SPSpreD", "SPSpostD"))
 
 
-
-
-
+ggplot(Paranoia, aes(x=variable, y=value, fill=Group, ymin=value-se,ymax=value+se))+
+  geom_bar(stat = "identity", position = "dodge")+
+  geom_errorbar(width=.3, position = "dodge")+
+  ylab("Mean paranoia")+
+  xlab("Condition")+
+  ggtitle("Mean paranoia scores pre- and post-PDG tasks")
+         
+         
+  
 
 
 
