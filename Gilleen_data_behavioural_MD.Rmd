@@ -617,6 +617,7 @@ Number_DTC_beads <- ggplot(NULL, aes(Draw, Freq))+
   ggtitle("Proportion of subjects reaching DTC by trial number, beads")+
   scale_y_continuous(limits=c(0, 1))
 Number_DTC_beads
+
 ```
 
 ##### **Group statistics of final certainty ratings for each seq, PDG and beads.**
