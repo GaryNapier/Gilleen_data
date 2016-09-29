@@ -42,7 +42,7 @@ source("https://raw.githubusercontent.com/GaryNapier/Packages_functions/master/P
 tryCatch({
   setwd("U:\\Gilleen_data")
 }, error=function(e) {
-  setwd("~/Dropbox/Gilleen_Analysis/For Gary")
+  setwd("~/Dropbox/Gilleen_Analysis/For Gary/Gilleen_original_data")
 })
 
 # Misc
@@ -1110,10 +1110,10 @@ SH_Number_DTC_beads
 tryCatch({
   setwd("U:\\Gilleen_data")
 }, error=function(e) {
-  setwd("~/Dropbox/Gilleen_Analysis/For Gary")
+  setwd("~/Dropbox/Gilleen_Analysis/For Gary/Gilleen_original_data")
 })
 
-Healthy_PDG_act <- read.csv("Gilleen_healthy_PGD_action.csv", header=TRUE)
+Healthy_PDG_act <- read.csv("Gilleen_healthy_PDG_action.csv", header=TRUE)
 Pat_PDG_act <- read.csv("Gilleen_patient_PDG_action.csv", header=TRUE)
 
 # Drop ID and save
