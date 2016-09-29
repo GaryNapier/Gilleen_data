@@ -332,6 +332,7 @@ ggplot(Paranoia, aes(x=variable, y=value, fill=Group, ymin=value-se,ymax=value+s
   geom_errorbar(width=.3, position = "dodge")+
   ylab("Mean paranoia")+
   xlab("Condition")+
+  coord_fixed(ratio = 0.2)+
   annotate("text", x = Sig, y = 20, label="*", fontface="bold", size=8)+
   ggtitle("Mean paranoia scores pre- and post-PDG tasks (* = significant)")
 
@@ -1268,7 +1269,7 @@ colnames(Test_D_table) <- paste("Draw", as.character(1:10))
 htmlTable(txtRound(Test_D_table, 3), 
           align = c("c", "|"), align.header=c("c", "|"), col.columns=c("none", Blue),
           rnames=c("t", "df", "p"),
-          caption = txtMergeLines("t-tests on healthy vs patient for each draw, seq A"))
+          caption = txtMergeLines("t-tests on healthy vs patient for each draw, seq D"))
 
 ```
 
@@ -1414,6 +1415,6 @@ cat(Add_html(list(Stpy_html, wm_html, nart_html, edu_html, tom_html)))
 
 ```
 
-Summary: Patients have a significantly higher schizotypy score with a large effect size; Healthy subjects' working memory is significantly higher with a very large (> 1 standard deviation) effect size. Patients score significantly higher for the NART intelligence score with a very large effect size [correct??].  Education and Theory of Mind did not significantly differ. 
+Summary: Patients have a significantly higher schizotypy score with a large effect size. Healthy subjects' working memory is significantly higher with a very large (> 1 standard deviation) effect size. Patients score significantly higher for the NART intelligence score with a very large effect size [correct??].  Education and Theory of Mind did not significantly differ. 
 
 
