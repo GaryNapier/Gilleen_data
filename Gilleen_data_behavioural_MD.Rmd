@@ -1,7 +1,7 @@
 ---
 title: "Gilleen data behavioural analyses of PDG and beads tasks"
 author: "Gary Napier"
-date: "12 August 2016"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
@@ -1505,5 +1505,4 @@ cat(Add_html(list(Stpy_html, wm_html, nart_html, edu_html, tom_html)))
 ```
 
 Summary: Patients have a significantly higher schizotypy score with a large effect size. Healthy subjects' working memory is significantly higher with a very large (> 1 standard deviation) effect size. Patients score significantly higher for the NART intelligence score with a very large effect size [correct??].  Education and Theory of Mind did not significantly differ. 
-
 
