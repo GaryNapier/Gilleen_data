@@ -1,7 +1,7 @@
 ---
 title: "Gilleen data behavioural analyses of PDG and beads tasks"
 author: "Gary Napier"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "12 August 2016"
 output: html_document
 ---
 
@@ -1201,16 +1201,9 @@ htmlTable(Test_table, header=c("Chi-sq", "d.f.", "p"),
 
 **-------------------------------------------------------------------------------------------------**
 
-#### 3b. Plot and analyses of the actions taken (cooperate/compete) in each condition over each trial and each seq of the PDG.
+#### 3b. plot/analyses of the actual actions taken (cooperate/compete) in each condition over the ten rounds
 
 ```{r echo=F, warning=FALSE, message=FALSE}
-
-# set WD
-tryCatch({
-  setwd("U:\\Gilleen_data")
-}, error=function(e) {
-  setwd("~/Dropbox/Gilleen_Analysis/For Gary/Gilleen_original_data")
-})
 
 Healthy_PDG_act <- read.csv("Gilleen_healthy_PDG_action.csv", header=TRUE)
 Pat_PDG_act <- read.csv("Gilleen_patient_PDG_action.csv", header=TRUE)
@@ -1221,9 +1214,6 @@ Patient_ID_PDG_action <- Pat_PDG_act[,1]
 
 Healthy_PDG_act <- Healthy_PDG_act[,-1]
 Pat_PDG_act <- Pat_PDG_act[,-1]
-
-# Clean Healthy_PDG_act - there is one '4' at row 44, col 15 - use which(Healthy_PDG_act == 4, arr.ind = T)
-Healthy_PDG_act[44, 15] <- 1
 
 # Change to 0/1 scale
 Healthy_PDG_act <- Healthy_PDG_act-1
@@ -1240,27 +1230,42 @@ Patient_act_sum <- summarySE(Patient_act_long, measurevar="Data", groupvars="Seq
 
 options(digits=3)
 
-
 # Do tests on each trial
 
-# Create tables for proportions
+# Create list of tables for proportions
 N_trials <- length(Healthy_PDG_act)
+
 Group <- c(rep("Healthy",  N_subj_healthy), rep("Patient", N_subj_pat)) 
 
 Test <- lapply(seq(N_trials), function(i) {
   data.frame(Action=c(Healthy_PDG_act[,i], Pat_PDG_act[,i]), Group)
 })
+
 Table <- lapply(seq(Test), function(i){
   xtabs(~ Group+Action, data=Test[[i]])
 })
-Prop_test <- sapply(seq(Table), function(i) prop.test(Table[[i]], correct= F))
-P_vals <- signif(unlist(Prop_test["p.value",]), digits=3) 
-Sig <- c(which(P_vals <= 0.05) )
+
+Prop_test <- 
+  
+  sapply(seq(Table), function(i) prop.test(Table[[i]]))
+
+x <- vector("list", length=N_trials)
+for(i in 1:N_trials){
+  
+  
+  
+}
+
+
+
+Tests <- sapply(seq(Healthy_PDG_act), function(i) t.test(Healthy_PDG_act[,i], Pat_PDG_act[,i]))
+
+
 
 
 # Plot actions
 Plot_actions <- function(){
-  ggplot(Healthy_act_sum, aes(x=Sequence, y=Data, group=1))+
+  ggplot(Healthy_act_sum, aes(x=Sequence, y=Data, group=1)) +
     geom_errorbar(aes(ymin=Data-se, ymax=Data+se), width=.2)+
     geom_line(colour = "red", size = 1, alpha=.7)+
     geom_errorbar(data=Patient_act_sum, aes(ymin=Data-se, ymax=Data+se), width=.2)+
@@ -1269,13 +1274,13 @@ Plot_actions <- function(){
                aes(x=1:length(Seq_PDG), y=Seq_PDG, colour=factor(Seq_PDG)),
                size=3, show.legend = FALSE)+
     scale_x_discrete(labels = Seq_PDG)+
+    expand_limits(x = c(1, length(Seq_PDG)+3))+
     scale_y_continuous(breaks = seq(0,1,0.1), limits = c(-0.1, 1.1))+
     ylab("Compete / co-operate")+
     geom_vline(xintercept = c(10.5, 20.5, 30.5), linetype = "longdash")+
     # geom_hline(yintercept = Values, alpha=Alpha_line)+
     annotate("text", x = c(5, 15, 25, 35), y=0.1, label = c("A", "B", "C", "D"), fontface = "bold")+
     annotate("text", x = length(Seq_PDG)/2, y=c(-0.1, 1.1), label=c("Compete", "Cooperate"))+
-    annotate("text", x = Sig, y = 0.8, label="*", fontface="bold", size=5)+
     # annotate("text", x=length(Seq_PDG)+1, y=Values, label=as.character(1:7), size=3 )+
     # annotate("text", x = length(Seq_PDG)+2, y=0.5, label="Original scale", angle=270)+
     ggtitle("Mean compete/co-operate data, healthy (red) & patient (blue).\n0 = compete, 1 = co-operate")+
@@ -1284,6 +1289,8 @@ Plot_actions <- function(){
 
 Plot_actions()
 #
+
+
 
 
 ```
@@ -1505,4 +1512,5 @@ cat(Add_html(list(Stpy_html, wm_html, nart_html, edu_html, tom_html)))
 ```
 
 Summary: Patients have a significantly higher schizotypy score with a large effect size. Healthy subjects' working memory is significantly higher with a very large (> 1 standard deviation) effect size. Patients score significantly higher for the NART intelligence score with a very large effect size [correct??].  Education and Theory of Mind did not significantly differ. 
+
 
