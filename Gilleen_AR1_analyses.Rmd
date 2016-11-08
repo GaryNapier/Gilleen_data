@@ -67,16 +67,6 @@ Group_names <- as.character(unique(Group))
 Blue <- "#F1F0FA"
 Table_options <- list(align=c("c","|"), align.header =c("c","|"), col.columns = c("none",Blue) )
 
-# Get model names/numbers
-Model_names <- vector()
-for (i in seq(Analyses_nos)){
-  if (is.even(i)){
-  Model_names[i] <- sprintf("A%g_beads", Analyses_nos[i])  
-  }else{
-  Model_names[i] <- sprintf("A%g_PDG", Analyses_nos[i])  
-  }
-}
-
 # Save names of priors
 Priors <- c("NuPrimeMu", "NuPrimeSa", "KappaMu", "KappaSa", "OmegaMu", 
             "OmegaSa", "ThetaMu", "ThetaSa", "mMu", "mSa", "PhiMu", "PhiSa", "Sig2Mu", "Sig2Sa")
@@ -97,7 +87,14 @@ N_analyses <- length(Analyses_nos)
 Datasets <- unlist(lapply(seq(length(Gilleen_analyses_results[[1]])),
               function(i) {Gilleen_analyses_results[[1]][[i]][[1]][, , 1][["Dataset.used"]]}))
 
+Datasets <- gsub("data", "", Datasets)
+
+Datasets <- Datasets[Analyses_nos]
+
 Mw_names <-  c("Z", "p", "r")
+
+# Get model names/numbers
+Model_names <- sprintf("A%g_%s", Analyses_nos, Datasets)  
 
 #----------------------------------------------------------------
 # Get & display parameter priors used for each selected analysis
