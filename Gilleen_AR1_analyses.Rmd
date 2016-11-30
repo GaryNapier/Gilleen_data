@@ -11,7 +11,7 @@ output: html_document
 Subjects <- 1
 Plot_subj <- FALSE
 
-Analyses_nos <- c(9:14)
+Analyses_nos <- c(9:15)
 
 Do_stats = TRUE
 Do_plots = TRUE
@@ -383,7 +383,13 @@ T_Sa2 <- cbind(T_Sa2,
                 function(x) cohensD(Sa2_vector ~ Group, data = x))))
 
 # Om2
-T_om2_tests <- lapply(Om2_vector, function(x) t.test(x$Om2_vector ~ x$Group))
+T_om2_tests <- lapply(Om2_vector, function(x)
+      tryCatch({
+      t.test(x$Om2_vector ~ x$Group) # Try this first
+      }, error = function(e) {
+      NA # error-handler-code (Do this if error)
+      }) # tryCatch
+  ) # lapply
 T_om2 <- do.call("rbind", T_om2_tests)
 T_om2 <- data.frame(T_om2[,c("statistic", "parameter", "p.value")])
 T_om2 <- cbind(T_om2, 
@@ -391,7 +397,13 @@ T_om2 <- cbind(T_om2,
                 function(x) cohensD(Om2_vector ~ Group, data = x))))
 
 # om3
-T_om3 <- lapply(Om3_vector, function(x) t.test(x$Om3_vector ~ x$Group))
+T_om3 <- lapply(Om3_vector, function(x)
+      tryCatch({
+      t.test(x$Om3_vector ~ x$Group) # Try this first
+      }, error = function(e) {
+      NA # error-handler-code (Do this if error)
+      }) # tryCatch
+  ) # lapply
 T_om3 <- do.call("rbind", T_om3)
 T_om3 <- data.frame(T_om3[,c("statistic", "parameter", "p.value")])
 T_om3 <- cbind(T_om3, 
@@ -399,7 +411,13 @@ T_om3 <- cbind(T_om3,
                 function(x) cohensD(Om3_vector ~ Group, data = x))))
 
 # Nu
-T_Nu <- lapply(Nu_vector, function(x) t.test(x$Nu_vector ~ x$Group))
+T_Nu <- lapply(Nu_vector, function(x)
+      tryCatch({
+      t.test(x$Nu_vector ~ x$Group) # Try this first
+      }, error = function(e) {
+      NA # error-handler-code (Do this if error)
+      }) # tryCatch
+  ) # lapply
 T_Nu <- do.call("rbind", T_Nu)
 T_Nu <- data.frame(T_Nu[,c("statistic", "parameter", "p.value")])
 T_Nu <- cbind(T_Nu, 
@@ -407,7 +425,13 @@ T_Nu <- cbind(T_Nu,
                 function(x) cohensD(Nu_vector ~ Group, data = x))))
 
 # M2
-T_M2 <- lapply(M2_vector, function(x) t.test(x$M2_vector ~ x$Group))
+T_M2 <- lapply(M2_vector, function(x)
+      tryCatch({
+      t.test(x$M2_vector ~ x$Group) # Try this first
+      }, error = function(e) {
+      NA # error-handler-code (Do this if error)
+      }) # tryCatch
+  ) # lapply
 T_M2 <- do.call("rbind", T_M2)
 T_M2 <- data.frame(T_M2[,c("statistic", "parameter", "p.value")])
 T_M2 <- cbind(T_M2, 
@@ -415,7 +439,13 @@ T_M2 <- cbind(T_M2,
                 function(x) cohensD(M2_vector ~ Group, data = x))))
 
 # M3
-T_M3 <- lapply(M3_vector, function(x) t.test(x$M3_vector ~ x$Group))
+T_M3 <- lapply(M3_vector, function(x)
+      tryCatch({
+      t.test(x$M3_vector ~ x$Group) # Try this first
+      }, error = function(e) {
+      NA # error-handler-code (Do this if error)
+      }) # tryCatch
+) # lapply
 T_M3 <- do.call("rbind", T_M3)
 T_M3 <- data.frame(T_M3[,c("statistic", "parameter", "p.value")])
 T_M3 <- cbind(T_M3, 
@@ -423,7 +453,13 @@ T_M3 <- cbind(T_M3,
                function(x) cohensD(M3_vector ~ Group, data = x))))
 
 # Phi2
-T_Phi2 <- lapply(Phi2_vector, function(x) t.test(x$Phi2_vector ~ x$Group))
+T_Phi2 <- lapply(Phi2_vector, function(x)
+      tryCatch({
+      t.test(x$Phi2_vector ~ x$Group) # Try this first
+      }, error = function(e) {
+      NA # error-handler-code (Do this if error)
+      }) # tryCatch
+  ) # lapply
 T_Phi2 <- do.call("rbind", T_Phi2)
 T_Phi2 <- data.frame(T_Phi2[,c("statistic", "parameter", "p.value")])
 T_Phi2 <- cbind(T_Phi2, 
@@ -431,7 +467,13 @@ T_Phi2 <- cbind(T_Phi2,
                  function(x) cohensD(Phi2_vector ~ Group, data = x))))
 
 # Phi3
-T_Phi3 <- lapply(Phi3_vector, function(x) t.test(x$Phi3_vector ~ x$Group))
+T_Phi3 <- lapply(Phi3_vector, function(x)
+      tryCatch({
+      t.test(x$Phi3_vector ~ x$Group) # Try this first
+      }, error = function(e) {
+      NA # error-handler-code (Do this if error)
+      }) # tryCatch
+  ) # lapply
 T_Phi3 <- do.call("rbind", T_Phi3)
 T_Phi3 <- data.frame(T_Phi3[,c("statistic", "parameter", "p.value")])
 T_Phi3 <- cbind(T_Phi3, 
