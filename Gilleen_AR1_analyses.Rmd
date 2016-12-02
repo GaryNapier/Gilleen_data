@@ -11,7 +11,7 @@ output: html_document
 Subjects <- 1
 Plot_subj <- FALSE
 
-Analyses_nos <- c(9:15)
+Analyses_nos <- c(9, 11, 16, 17)
 
 Do_stats = TRUE
 Do_plots = TRUE
