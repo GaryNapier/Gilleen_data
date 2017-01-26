@@ -8,7 +8,7 @@ output: html_document
 <!-- arguments -->
 
 ```{r echo = FALSE, cache=F}
-#TESTING
+#
 Subjects <- 1
 Plot_subj <- FALSE
 
