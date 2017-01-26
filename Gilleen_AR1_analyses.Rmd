@@ -8,6 +8,7 @@ output: html_document
 <!-- arguments -->
 
 ```{r echo = FALSE, cache=F}
+
 Subjects <- 1
 Plot_subj <- FALSE
 
