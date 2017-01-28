@@ -72,6 +72,13 @@ Healthy_beads <- read.csv("Gilleen_healthy_beads.csv", header = TRUE)
 Patient_PDG   <- read.csv("Gilleen_patient_PDG_trust.csv", header = TRUE)
 Patient_beads <- read.csv("Gilleen_patient_beads.csv", header = TRUE)
 
+# Read in basic data about benhavioural measures e.g. working memory & SPQ
+Gilleen_tidy <- read.csv("Gilleen tidy.csv", header = TRUE)
+
+# Control & patient only (probably will need)
+Ctrl_tidy <- Gilleen_tidy[Gilleen_tidy["Cond"]=="Control", ]
+Pat_tidy <- Gilleen_tidy[Gilleen_tidy["Cond"]=="Patient", ]
+
 # Clean Healthy_beads
 Healthy_beads <- tryCatch({
   dplyr::select(Healthy_beads, -(X:X.11))
@@ -1205,6 +1212,13 @@ htmlTable(Test_table, header=c("Chi-sq", "d.f.", "p"),
 
 ```{r echo=F, warning=FALSE, message=FALSE}
 
+# set WD (again...)
+tryCatch({
+  setwd("U:\\Gilleen_data")
+}, error=function(e) {
+  setwd("~/Dropbox/Gilleen_Analysis/For Gary/Gilleen_original_data")
+})
+
 Healthy_PDG_act <- read.csv("Gilleen_healthy_PDG_action.csv", header=TRUE)
 Pat_PDG_act <- read.csv("Gilleen_patient_PDG_action.csv", header=TRUE)
 
@@ -1245,22 +1259,15 @@ Table <- lapply(seq(Test), function(i){
   xtabs(~ Group+Action, data=Test[[i]])
 })
 
-Prop_test <- 
-  
-  sapply(seq(Table), function(i) prop.test(Table[[i]]))
-
-x <- vector("list", length=N_trials)
-for(i in 1:N_trials){
-  
-  
-  
-}
-
-
+# Prop_test <- sapply(seq(Table), function(i) prop.test(Table[[i]]))
+# 
+# x <- vector("list", length=N_trials)
+# for(i in 1:N_trials){
+# 
+# 
+# }
 
 Tests <- sapply(seq(Healthy_PDG_act), function(i) t.test(Healthy_PDG_act[,i], Pat_PDG_act[,i]))
-
-
 
 
 # Plot actions
@@ -1289,8 +1296,6 @@ Plot_actions <- function(){
 
 Plot_actions()
 #
-
-
 
 
 ```
